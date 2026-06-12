@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>You're offline · Bistro Nordic</title>
+<style>
+  :root { color-scheme: light; }
+  html, body { margin: 0; padding: 0; background: #F5EDE0; color: #2A1418; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .wrap { min-height: 100dvh; display: grid; place-items: center; padding: 24px; text-align: center; }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  p  { color: rgba(42,20,24,0.7); margin: 0 0 20px; max-width: 320px; line-height: 1.5; }
+  .btn { display: inline-block; padding: 12px 24px; background: #6B1F2A; color: #F5EDE0; border: none; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .btn:active { transform: scale(0.98); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <h1>You're offline</h1>
+      <p>Check your Wi-Fi and try again. If the problem continues, ask a staff member and we'll take your feedback directly.</p>
+      <button class="btn" onclick="location.reload()">Try again</button>
+    </div>
+  </div>
+</body>
+</html>
