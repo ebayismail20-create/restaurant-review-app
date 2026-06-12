@@ -11,7 +11,6 @@ export interface VenueContext {
   platformUrls: {
     google: string;       // full Google "write a review" URL for this venue
     tripadvisor: string;  // Tripadvisor write-review URL
-    facebook: string;     // Facebook reviews URL
   };
 }
 
@@ -24,7 +23,6 @@ export interface VenueContext {
 export const PLATFORM_FALLBACK_URLS: VenueContext['platformUrls'] = {
   google: 'https://www.google.com/maps',
   tripadvisor: 'https://www.tripadvisor.com',
-  facebook: 'https://www.facebook.com',
 };
 
 // TODO(phase-1.2): remove this default when dynamic routing lands.
@@ -39,7 +37,6 @@ export const DEMO_VENUE: VenueContext = {
     // Google: https://search.google.com/local/writereview?placeid=<PLACE_ID>
     google: 'https://search.google.com/local/writereview?placeid=PLACEHOLDER',
     tripadvisor: 'https://www.tripadvisor.com/UserReviewEdit-PLACEHOLDER',
-    facebook: 'https://www.facebook.com/PLACEHOLDER/reviews',
   },
 };
 

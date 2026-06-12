@@ -113,6 +113,10 @@ body {
     0 50px 100px -20px rgba(0,0,0,0.7),
     0 30px 60px -30px rgba(107,31,42,0.4);
   font-family: var(--font-sans);
+  /* Inline-size container: display type and rhythm below scale with the
+     shell itself (cqi units), so proportions are identical inside the
+     desktop phone frame and full-bleed on any real handset. */
+  container-type: inline-size;
 }
 
 .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 28px; background: #1a1112; border-radius: 0 0 18px 18px; z-index: 100; }
@@ -137,7 +141,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 12px 28px 32px;
+  padding: 12px clamp(18px, 6.6cqi, 28px) clamp(20px, 7.6cqi, 32px);
   position: absolute;
   inset: 76px 0 0 0;
   opacity: 0;
@@ -181,7 +185,7 @@ body {
   pointer-events: none;
 }
 .venue-brand { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.venue-brand-name { font-family: var(--font-serif); font-size: 24px; font-weight: 500; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
+.venue-brand-name { font-family: var(--font-serif); font-size: clamp(21px, 5.8cqi, 24px); font-weight: 500; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
 .venue-brand-tag { font-size: 9px; font-weight: 500; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; opacity: 0.85; }
 .table-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--bg-card); color: var(--text); padding: 8px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 500; box-shadow: 0 4px 14px -4px rgba(42,20,24,0.12); letter-spacing: 0.2px; }
 .table-chip svg { color: var(--accent); }
@@ -189,7 +193,7 @@ body {
 /* Multi-line titles use \n in the dictionary — no HTML. */
 .rating-title, .reasons-title, .platforms-title, .success-title, .contact-title { white-space: pre-line; }
 
-.btn-primary { background: var(--button); color: var(--button-text); border: none; padding: 18px 36px; border-radius: var(--radius-pill); font-size: 14.5px; font-weight: 500; font-family: var(--font-sans); letter-spacing: 0.2px; cursor: pointer; transition: transform .2s var(--ease-out), box-shadow .2s var(--ease-out), background var(--transition); box-shadow: 0 8px 20px -6px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 10px; min-width: 200px; justify-content: center; }
+.btn-primary { background: var(--button); color: var(--button-text); border: none; padding: clamp(16px, 4.3cqi, 18px) clamp(26px, 8.6cqi, 36px); border-radius: var(--radius-pill); font-size: 14.5px; font-weight: 500; font-family: var(--font-sans); letter-spacing: 0.2px; cursor: pointer; transition: transform .2s var(--ease-out), box-shadow .2s var(--ease-out), background var(--transition); box-shadow: 0 8px 20px -6px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 10px; min-width: min(200px, 100%); justify-content: center; }
 .btn-primary:active:not([disabled]) { transform: translateY(2px) scale(.98); }
 .btn-primary[disabled] { opacity: 0.55; cursor: not-allowed; }
 .btn-primary[aria-busy="true"] .btn-spinner { display: inline-block; }
@@ -201,7 +205,7 @@ body {
 /* ============================== RATING SCREEN ============================== */
 .rating-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding-top: 8px; padding-bottom: 8px; }
 .step-label { font-size: 11px; font-weight: 500; letter-spacing: 4px; color: var(--text-soft); text-transform: uppercase; margin-bottom: 18px; }
-.rating-title { font-family: var(--font-serif); font-size: 32px; font-weight: 500; line-height: 1.1; color: var(--text); margin-bottom: 22px; letter-spacing: -1px; }
+.rating-title { font-family: var(--font-serif); font-size: clamp(26px, 7.7cqi, 32px); font-weight: 500; line-height: 1.1; color: var(--text); margin-bottom: clamp(16px, 5.3cqi, 22px); letter-spacing: -1px; }
 
 /* Face / mood word / Continue collapse to zero height until the guest picks
    a rating, so the stars sit at the optical centre of the screen. On .rated
@@ -217,13 +221,13 @@ body {
 .rating-content.rated .rating-word { max-height: 60px; margin-bottom: 18px; opacity: 1; transform: translateY(0); pointer-events: auto; }
 .rating-content.rated .rating-actions { max-height: 80px; margin-top: 20px; margin-bottom: 8px; opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-.face-wrap { width: 160px; height: 160px; margin-bottom: 12px; position: relative; }
+.face-wrap { width: clamp(120px, 38cqi, 160px); height: clamp(120px, 38cqi, 160px); margin-bottom: 12px; position: relative; }
 .face-wrap svg { width: 100%; height: 100%; overflow: visible; }
 .face-wrap circle, .face-wrap path { transition: all 0.45s var(--ease-back); }
 
-.rating-word { font-family: var(--font-serif); font-size: 38px; font-weight: 500; color: var(--text); letter-spacing: -1px; margin-bottom: 18px; transition: all .35s; min-height: 46px; }
+.rating-word { font-family: var(--font-serif); font-size: clamp(30px, 9.1cqi, 38px); font-weight: 500; color: var(--text); letter-spacing: -1px; margin-bottom: 18px; transition: all .35s; min-height: clamp(38px, 11cqi, 46px); }
 
-.stars { display: flex; gap: 8px; margin-bottom: 24px; }
+.stars { display: flex; gap: clamp(4px, 2cqi, 8px); margin-bottom: clamp(18px, 5.8cqi, 24px); }
 /* Unselected stars sit at 0.7 opacity (was 0.55) so they read as waiting
    controls, not faint decoration — the artifact value washed out on the
    warmer theme backgrounds. */
@@ -241,10 +245,10 @@ body {
 /* ============================== TAGS SCREENS ============================== */
 .reasons-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; text-align: center; padding: 8px 0; }
 .reasons-header { text-align: center; margin-bottom: 16px; margin-top: 4px; width: 100%; }
-.reasons-title { font-family: var(--font-serif); font-size: 30px; font-weight: 500; line-height: 1.1; color: var(--text); margin-bottom: 12px; letter-spacing: -1px; }
+.reasons-title { font-family: var(--font-serif); font-size: clamp(24px, 7.2cqi, 30px); font-weight: 500; line-height: 1.1; color: var(--text); margin-bottom: 12px; letter-spacing: -1px; }
 .reasons-sub { font-size: 13px; color: var(--text-soft); font-weight: 400; line-height: 1.55; letter-spacing: -0.1px; }
 .tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 16px; }
-.tag { padding: 14px 22px; border-radius: var(--radius-pill); border: 1.5px solid var(--brand-line); background: transparent; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; transition: background .2s var(--ease-out), border-color .2s var(--ease-out), color .2s var(--ease-out), transform .2s var(--ease-out); display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.1px; min-height: var(--touch); font-family: var(--font-sans); }
+.tag { padding: clamp(11px, 3.4cqi, 14px) clamp(16px, 5.3cqi, 22px); border-radius: var(--radius-pill); border: 1.5px solid var(--brand-line); background: transparent; color: var(--text); font-size: clamp(13px, 3.4cqi, 14px); font-weight: 500; cursor: pointer; transition: background .2s var(--ease-out), border-color .2s var(--ease-out), color .2s var(--ease-out), transform .2s var(--ease-out); display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.1px; min-height: var(--touch); font-family: var(--font-sans); }
 .tag .tag-icon { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex-shrink: 0; color: var(--accent); transition: color .2s; }
 .tag .tag-icon svg { width: 100%; height: 100%; }
 .tag[aria-pressed="true"] { background: var(--button); border-color: var(--button); color: var(--button-text); transform: scale(1.03); box-shadow: 0 4px 10px -3px rgba(0,0,0,0.2); }
@@ -256,7 +260,7 @@ body {
 #screenImprove .comment-wrap, #screenSorry .comment-wrap { display: none; }
 #screenImprove.has-selection .comment-wrap, #screenSorry.has-selection .comment-wrap { display: block; animation: fadeUp .35s var(--ease-out) backwards; }
 .tag-error { font-size: 12px; color: var(--alert); font-weight: 500; margin: -4px auto 12px; max-width: 320px; text-align: center; line-height: 1.4; }
-textarea.comment { width: 100%; display: block; box-sizing: border-box; min-height: 140px; border: 1.5px solid var(--brand-line); border-radius: 22px; padding: 18px 22px; font-size: 16px; line-height: 1.6; font-family: var(--font-sans); font-weight: 400; resize: none; background: var(--bg-card); color: var(--text); transition: border-color .2s; text-align: left; letter-spacing: -0.1px; }
+textarea.comment { width: 100%; display: block; box-sizing: border-box; min-height: clamp(110px, 20dvh, 140px); border: 1.5px solid var(--brand-line); border-radius: 22px; padding: clamp(14px, 4.3cqi, 18px) clamp(16px, 5.3cqi, 22px); font-size: 16px; line-height: 1.6; font-family: var(--font-sans); font-weight: 400; resize: none; background: var(--bg-card); color: var(--text); transition: border-color .2s; text-align: left; letter-spacing: -0.1px; }
 textarea.comment::placeholder { color: var(--text-soft); opacity: 0.7; font-size: 16px; font-weight: 400; }
 textarea.comment:focus { outline: none; border-color: var(--accent); }
 .comment-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-soft); }
@@ -266,18 +270,93 @@ textarea.comment:focus { outline: none; border-color: var(--accent); }
 /* ============================== PLATFORMS SCREEN ============================== */
 .platforms-content { flex: 1; display: flex; flex-direction: column; align-items: stretch; justify-content: center; text-align: center; padding-top: 8px; padding-bottom: 8px; }
 .platforms-emoji { font-size: 48px; margin-bottom: 8px; }
-.platforms-title { font-family: var(--font-serif); font-size: 30px; font-weight: 500; line-height: 1.1; color: var(--text); margin-bottom: 10px; letter-spacing: -1px; }
-.platforms-sub { font-size: 14px; color: var(--text-soft); margin-bottom: 28px; line-height: 1.55; }
-.platform-card { width: 100%; background: #fff; border-radius: 20px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out); box-shadow: 0 6px 18px -8px rgba(42,20,24,0.15); border: 1px solid rgba(42,20,24,0.05); text-align: left; font-family: var(--font-sans); }
+.platforms-title { font-family: var(--font-serif); font-size: clamp(24px, 7.2cqi, 30px); font-weight: 500; line-height: 1.1; color: var(--text); margin-bottom: 10px; letter-spacing: -1px; }
+.platforms-sub { font-size: clamp(13px, 3.4cqi, 14px); color: var(--text-soft); margin-bottom: clamp(18px, 6.7cqi, 28px); line-height: 1.55; }
+
+/* Platform cards — the conversion moment of the whole product, designed
+   like an invitation rather than a list row: brand-tinted icon well, a
+   five-gold-star prime under the platform name, and a gold call-to-action
+   disc that fills burgundy on hover. A hairline gold edge lights up the
+   left side of the hovered card. */
+.platform-card {
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: 22px;
+  padding: clamp(14px, 4.3cqi, 18px) clamp(14px, 4.8cqi, 20px);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 3.8cqi, 16px);
+  cursor: pointer;
+  transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  box-shadow:
+    0 14px 30px -16px rgba(42,20,24,0.28),
+    0 2px 6px -2px rgba(42,20,24,0.08);
+  border: 1px solid rgba(42,20,24,0.07);
+  text-align: left;
+  font-family: var(--font-sans);
+  position: relative;
+  overflow: hidden;
+}
+.platform-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity .25s var(--ease-out);
+}
 @media (hover: hover) {
-  .platform-card:hover { transform: translateY(-2px); }
+  .platform-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 20px 38px -16px rgba(42,20,24,0.34),
+      0 3px 8px -2px rgba(42,20,24,0.10);
+  }
+  .platform-card:hover::before { opacity: 1; }
+  .platform-card:hover .platform-cta {
+    background: var(--button);
+    color: var(--button-text);
+  }
+  .platform-card:hover .platform-cta svg { transform: translateX(2px); }
 }
 .platform-card:active { transform: scale(0.98); }
-.platform-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: #fafafa; flex-shrink: 0; }
-.platform-info { flex: 1; }
-.platform-name { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 3px; letter-spacing: -0.2px; }
-.platform-desc { font-size: 12px; color: #888; font-weight: 400; line-height: 1.4; }
-.platform-arrow { color: var(--text-soft); }
+.platform-icon {
+  width: clamp(48px, 14cqi, 56px);
+  height: clamp(48px, 14cqi, 56px);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid rgba(42,20,24,0.08);
+  flex-shrink: 0;
+}
+.platform-card[data-platform="tripadvisor"] .platform-icon {
+  background: rgba(0,175,135,0.08);
+  border-color: rgba(0,175,135,0.20);
+}
+.platform-info { flex: 1; min-width: 0; }
+.platform-name { font-size: clamp(15px, 3.9cqi, 16px); font-weight: 600; color: #1a1a1a; letter-spacing: -0.2px; line-height: 1.2; }
+.platform-stars { color: var(--accent); font-size: 10px; letter-spacing: 2.5px; line-height: 1; margin: 4px 0 4px; }
+.platform-desc { font-size: clamp(12px, 3.1cqi, 12.5px); color: #8a7a6e; font-weight: 400; line-height: 1.4; }
+.platform-cta {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201,169,97,0.16);
+  color: var(--button);
+  flex-shrink: 0;
+  transition: background .25s var(--ease-out), color .25s var(--ease-out);
+}
+.platform-cta svg { transition: transform .25s var(--ease-out); }
 .skip { margin-top: 18px; background: transparent; border: none; color: var(--text-soft); font-size: 13px; font-weight: 400; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; cursor: pointer; }
 
 /* ============================== SUCCESS ============================== */
@@ -285,7 +364,7 @@ textarea.comment:focus { outline: none; border-color: var(--accent); }
 .success.show { opacity: 1; pointer-events: all; }
 .success-mark { width: 88px; height: 88px; border-radius: 50%; background: var(--button); color: var(--button-text); display: flex; align-items: center; justify-content: center; margin-bottom: 28px; opacity: 0; transform: scale(.7); transition: opacity .5s var(--ease-back) .15s, transform .5s var(--ease-back) .15s; box-shadow: 0 12px 28px -8px rgba(0,0,0,0.3); }
 .success.show .success-mark { opacity: 1; transform: scale(1); }
-.success-title { font-family: var(--font-serif); font-size: 36px; font-weight: 500; color: var(--text); margin-bottom: 14px; letter-spacing: -1.2px; opacity: 0; transform: translateY(16px); transition: all .4s ease .25s; }
+.success-title { font-family: var(--font-serif); font-size: clamp(29px, 8.7cqi, 36px); font-weight: 500; color: var(--text); margin-bottom: 14px; letter-spacing: -1.2px; opacity: 0; transform: translateY(16px); transition: all .4s ease .25s; }
 .success-msg { font-size: 15px; color: var(--text-soft); line-height: 1.6; margin-bottom: 32px; max-width: 280px; font-weight: 400; opacity: 0; transform: translateY(16px); transition: all .4s ease .35s; }
 .success.show .success-title, .success.show .success-msg { opacity: 1; transform: translateY(0); }
 .success-cta { opacity: 0; transform: translateY(16px); transition: all .4s ease .45s; }
@@ -319,7 +398,7 @@ textarea.comment:focus { outline: none; border-color: var(--accent); }
 .anon-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(74,222,128,0.12); color: #1F6B3A; padding: 8px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 500; letter-spacing: 0.3px; margin-bottom: 8px; align-self: flex-start; border: 1px solid rgba(74,222,128,0.3); }
 .anon-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 0 3px rgba(74,222,128,0.3); }
 .anon-privacy-note { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; margin-bottom: 14px; }
-textarea.comment.tall { min-height: 160px; }
+textarea.comment.tall { min-height: clamp(130px, 24dvh, 160px); }
 
 /* Subtle screen enter animation */
 .screen.active > .venue-header,

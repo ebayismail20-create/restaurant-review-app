@@ -517,7 +517,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   }, [buildPayload, notifyManager, showSuccessScreen]);
 
   const openPlatform = useCallback(
-    (p: 'google' | 'tripadvisor' | 'facebook') => {
+    (p: 'google' | 'tripadvisor') => {
       let url = venue.platformUrls[p];
       // Unconfigured tenant: degrade to the platform home page instead of a
       // 404, and make the misconfiguration loud for monitoring.
@@ -1080,10 +1080,11 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
             <button
               type="button"
               className="platform-card"
+              data-platform="google"
               onClick={() => openPlatform('google')}
             >
               <div className="platform-icon" aria-hidden="true">
-                <svg width="32" height="32" viewBox="0 0 48 48">
+                <svg width="34" height="34" viewBox="0 0 48 48">
                   <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
                   <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" />
                   <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
@@ -1092,30 +1093,32 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               </div>
               <div className="platform-info">
                 <div className="platform-name">Google</div>
+                <div className="platform-stars" aria-hidden="true">★★★★★</div>
                 <div className="platform-desc">{dict.googleDesc}</div>
               </div>
-              <svg
-                className="platform-arrow"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              <span className="platform-cta" aria-hidden="true">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </span>
             </button>
 
             <button
               type="button"
               className="platform-card"
+              data-platform="tripadvisor"
               onClick={() => openPlatform('tripadvisor')}
             >
               <div className="platform-icon" aria-hidden="true">
-                <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
                   <circle cx="24" cy="24" r="20" fill="#00AF87" />
                   <circle cx="16" cy="22" r="6" fill="#fff" />
                   <circle cx="32" cy="22" r="6" fill="#fff" />
@@ -1125,50 +1128,22 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               </div>
               <div className="platform-info">
                 <div className="platform-name">Tripadvisor</div>
+                <div className="platform-stars" aria-hidden="true">★★★★★</div>
                 <div className="platform-desc">{dict.tripDesc}</div>
               </div>
-              <svg
-                className="platform-arrow"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              className="platform-card"
-              onClick={() => openPlatform('facebook')}
-            >
-              <div className="platform-icon" aria-hidden="true">
-                <svg width="32" height="32" viewBox="0 0 48 48">
-                  <path fill="#1877F2" d="M24 4C12.954 4 4 12.954 4 24c0 9.978 7.328 18.249 16.875 19.749V29.797h-5.078V24h5.078v-4.406c0-5.014 2.987-7.789 7.555-7.789c2.187 0 4.475.391 4.475.391v4.922h-2.521c-2.484 0-3.259 1.541-3.259 3.123V24h5.547l-.887 5.797h-4.66v13.952C36.672 42.249 44 33.978 44 24c0-11.046-8.954-20-20-20z" />
+              <span className="platform-cta" aria-hidden="true">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-              </div>
-              <div className="platform-info">
-                <div className="platform-name">Facebook</div>
-                <div className="platform-desc">{dict.fbDesc}</div>
-              </div>
-              <svg
-                className="platform-arrow"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              </span>
             </button>
 
             <button type="button" className="skip" onClick={finishFromPlatforms}>
