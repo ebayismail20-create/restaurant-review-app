@@ -224,7 +224,10 @@ body {
 .rating-word { font-family: var(--font-serif); font-size: 38px; font-weight: 500; color: var(--text); letter-spacing: -1px; margin-bottom: 18px; transition: all .35s; min-height: 46px; }
 
 .stars { display: flex; gap: 8px; margin-bottom: 24px; }
-.star { width: var(--touch); height: var(--touch); cursor: pointer; color: var(--text-soft); transition: color .25s var(--ease-back), transform .25s var(--ease-back), opacity .25s var(--ease-back); display: flex; align-items: center; justify-content: center; opacity: 0.55; position: relative; background: transparent; border: none; padding: 0; }
+/* Unselected stars sit at 0.7 opacity (was 0.55) so they read as waiting
+   controls, not faint decoration — the artifact value washed out on the
+   warmer theme backgrounds. */
+.star { width: var(--touch); height: var(--touch); cursor: pointer; color: var(--text-soft); transition: color .25s var(--ease-back), transform .25s var(--ease-back), opacity .25s var(--ease-back); display: flex; align-items: center; justify-content: center; opacity: 0.7; position: relative; background: transparent; border: none; padding: 0; }
 .star svg { width: 100%; height: 100%; position: relative; z-index: 2; }
 .star svg path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; transition: all .25s; }
 .star.active { color: var(--accent); transform: scale(1.08); opacity: 1; }
@@ -256,9 +259,7 @@ body {
 textarea.comment { width: 100%; display: block; box-sizing: border-box; min-height: 140px; border: 1.5px solid var(--brand-line); border-radius: 22px; padding: 18px 22px; font-size: 16px; line-height: 1.6; font-family: var(--font-sans); font-weight: 400; resize: none; background: var(--bg-card); color: var(--text); transition: border-color .2s; text-align: left; letter-spacing: -0.1px; }
 textarea.comment::placeholder { color: var(--text-soft); opacity: 0.7; font-size: 16px; font-weight: 400; }
 textarea.comment:focus { outline: none; border-color: var(--accent); }
-textarea.comment.error { border-color: var(--alert); background: rgba(214, 69, 69, 0.05); }
 .comment-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-soft); }
-.comment-meta .error-text { color: var(--alert); font-weight: 500; }
 
 .send-error { color: var(--alert); font-size: 12px; margin: 0 0 10px; text-align: center; font-weight: 500; }
 
@@ -340,11 +341,43 @@ textarea.comment.tall { min-height: 160px; }
 .error-digest { margin-top: 24px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--text-soft); letter-spacing: 0.4px; }
 
 /* ===================================================================== */
+/* Touch ergonomics: on coarse pointers the 10px language buttons grow   */
+/* to a comfortable target. 38px clears WCAG 2.5.8 AA (24px) with room   */
+/* to spare while keeping the pill compact.                              */
+/* ===================================================================== */
+@media (pointer: coarse) {
+  .lang-btn { min-height: 38px; min-width: 38px; padding: 8px 11px; }
+}
+
+/* ===================================================================== */
+/* Height-constrained phones (iPhone SE class, ~667px viewports):        */
+/* tighten the fixed rhythm so the rated rating screen and the sorry     */
+/* screen's Send button fit without scrolling.                           */
+/* ===================================================================== */
+@media (max-height: 700px) {
+  .venue-header { margin-bottom: 10px; }
+  .face-wrap { width: 120px; height: 120px; margin-bottom: 8px; }
+  .rating-title { font-size: 26px; margin-bottom: 14px; }
+  .rating-word { font-size: 30px; min-height: 38px; margin-bottom: 12px; }
+  .stars { margin-bottom: 16px; }
+  .rating-content.rated .rating-actions { margin-top: 12px; }
+  .sorry-heart { width: 40px; height: 40px; margin: 2px auto 8px; }
+  .reasons-header { margin-bottom: 10px; }
+  .tags { margin-bottom: 12px; }
+  textarea.comment { min-height: 110px; }
+  .platforms-emoji { font-size: 36px; margin-bottom: 4px; }
+  .platforms-sub { margin-bottom: 16px; }
+  .platform-card { margin-bottom: 10px; }
+}
+
+/* ===================================================================== */
 /* Drop the fake-phone chrome in two cases:                              */
 /*   1. Real phones (viewport <= 768px) — actual hardware bezel exists.  */
 /*   2. Installed PWA (display-mode: standalone) — the OS supplies its   */
 /*      own window chrome, so the simulated notch + status bar would be  */
 /*      a duplicate.                                                     */
+/* On tablets the full-bleed content column is capped at 560px so the    */
+/* layout never stretches gawkily across the whole viewport.             */
 /* ===================================================================== */
 @media (max-width: 768px), all and (display-mode: standalone) {
   body {
@@ -377,9 +410,15 @@ textarea.comment.tall { min-height: 160px; }
     padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     padding-left: calc(20px + env(safe-area-inset-left, 0px));
     padding-right: calc(20px + env(safe-area-inset-right, 0px));
+    width: 100%;
+    max-width: 560px;
+    margin-inline: auto;
   }
 
   .header {
+    width: 100%;
+    max-width: 560px;
+    margin-inline: auto;
     padding-top: calc(8px + env(safe-area-inset-top, 0px));
   }
 }

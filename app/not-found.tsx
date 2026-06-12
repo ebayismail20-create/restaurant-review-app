@@ -36,12 +36,17 @@ const NOT_FOUND_DICT: Record<Lang, { title: string; body: string; cta: string }>
 export default function NotFound() {
   const [lang, setLang] = useState<Lang>('en');
 
-  // One-shot navigator.language detection on mount — same pattern as
-  // page.tsx and error.tsx. Reading navigator during render risks a
-  // hydration mismatch, so we accept the lint exception here.
+  // Language priority matches page.tsx and error.tsx: the guest's explicit
+  // in-app choice (localStorage) wins over navigator.language. One-shot
+  // setState on mount to avoid hydration mismatches.
   useEffect(() => {
-    if (typeof navigator === 'undefined') return;
-    const candidate = (navigator.language || '').slice(0, 2).toLowerCase();
+    let candidate: string | null = null;
+    try {
+      candidate = window.localStorage.getItem('bistro-lang');
+    } catch { /* privacy mode */ }
+    if (!candidate && typeof navigator !== 'undefined') {
+      candidate = (navigator.language || '').slice(0, 2).toLowerCase();
+    }
     if (candidate === 'fi' || candidate === 'sv') {
       // Intentional one-shot setState — see comment block above.
       // eslint-disable-next-line react-hooks/set-state-in-effect

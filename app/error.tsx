@@ -59,14 +59,20 @@ export default function Error({
 }) {
   const [lang, setLang] = useState<Lang>('en');
 
-  // navigator.language reads the browser's preferred locale. Defensive in
-  // case error.tsx itself was rendered server-side (rare; can happen with
-  // streaming SSR shells). Same one-shot detection pattern as page.tsx —
-  // setState during effect is intentional because we can't read navigator
-  // during render without risking a hydration mismatch.
+  // Language priority matches page.tsx: the guest's explicit in-app choice
+  // (persisted to localStorage) wins over navigator.language. A Finn who
+  // tapped FI should not get an English error page just because their
+  // phone OS is set to en-US. Same one-shot setState pattern as page.tsx —
+  // we can't read navigator/localStorage during render without risking a
+  // hydration mismatch.
   useEffect(() => {
-    if (typeof navigator === 'undefined') return;
-    const candidate = (navigator.language || '').slice(0, 2).toLowerCase();
+    let candidate: string | null = null;
+    try {
+      candidate = window.localStorage.getItem('bistro-lang');
+    } catch { /* privacy mode */ }
+    if (!candidate && typeof navigator !== 'undefined') {
+      candidate = (navigator.language || '').slice(0, 2).toLowerCase();
+    }
     if (candidate === 'fi' || candidate === 'sv') {
       // Intentional one-shot setState — see comment block above.
       // eslint-disable-next-line react-hooks/set-state-in-effect

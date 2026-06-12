@@ -4,25 +4,13 @@ Bistro Nordic / Helsinki demo. Single-page Next.js 16 app at `/`, on-table QR ta
 
 ---
 
-## ⚠ Outstanding — fix before next session
+## ✅ Resolved (2026-06-13)
 
-**`app/page.tsx` is currently broken.** File grew to 1364 lines through unattributed edits; JSX tags don't balance. `tsc` fails:
-
-```
-app/page.tsx(691,6): error TS17008: JSX element 'div' has no corresponding closing tag.
-app/page.tsx(1341,8): error TS17008: JSX element 'div' has no corresponding closing tag.
-app/page.tsx(1360,10): error TS17008: JSX element 'div' has no corresponding closing tag.
-app/page.tsx(1365,5): error TS1005: '/' expected.
-```
-
-The error appears after edits made between the "lift step-label out of rating-content" change and the latest spacing pass. Diagnose:
-
-```bash
-git diff HEAD app/page.tsx | head -200      # see what changed
-git log --oneline app/page.tsx | head -10   # find a known-good commit
-```
-
-The CSS spacing changes from this session (in `app/globals.css`) are sound and don't depend on the page.tsx breakage — they'll work as soon as the JSX is fixed.
+The "`app/page.tsx` is broken" warning that used to live here is stale —
+the file compiles, builds, and ships. Since this log was written the app
+went through several full design iterations and an audit-fix pass; the
+current state is described in `README.md`, and the historical notes below
+describe an older revision (kept for context, don't treat them as current).
 
 ---
 

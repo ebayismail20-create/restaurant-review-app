@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Loop — guest review app (Bistro Nordic demo)
 
-## Getting Started
+On-table QR feedback flow for restaurants. A guest scans the code at their
+table, rates the visit (1–5 stars), and is routed by outcome:
 
-First, run the development server:
+- **5★** → public review prompts (Google / Tripadvisor / Facebook)
+- **3–4★** → private "what could we improve" feedback to the manager
+- **1–2★** → urgent "what went wrong" flow, plus an anonymous
+  contact-the-manager escape hatch
+
+Single-venue demo (Bistro Nordic · Helsinki) in EN / FI / SV. Multi-tenant
+routing (`/r/[slug]/[table]`) is planned — see `PHASE-2:` markers in the code.
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript strict**
+- Tailwind directives + a hand-written design system in `app/globals.css`
+- PWA: typed manifest (`app/manifest.ts`), service worker (`public/sw.js`,
+  registered in production only), offline fallback
+- Security: nonce-based CSP via `proxy.ts`, full static header suite in
+  `next.config.ts`
+
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+npm test           # vitest (unit + flow integration tests in tests/)
+npm run lint
+npm run build      # production build (dynamic rendering — per-request CSP nonce)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_SITE_URL` for
+deployed environments.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/page.tsx            the entire guest flow (single client component)
+app/lib/types.ts        shared contracts incl. SubmissionPayload (the API contract)
+app/lib/dictionaries.ts typed EN/FI/SV copy — every key required in every language
+app/lib/venue.ts        venue context; DEMO_VENUE until multi-tenant routing lands
+app/components/         presentational pieces (tag icons)
+proxy.ts                per-request CSP nonce + security headers
+tests/                  vitest suites (lib units + review-flow integration)
+```
 
-## Learn More
+## Known gaps (deliberate, tracked)
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `notifyManager` is a mock — submissions are not persisted until the
+  Phase 2 backend (`/api/submissions` + Supabase) lands. Success copy is
+  worded to avoid promising delivery SLAs until then.
+- `DEMO_VENUE.platformUrls` are placeholders; clicks fall back to platform
+  home pages and log a config error. Set real per-venue URLs before launch.
+- No production telemetry yet (Sentry planned alongside the backend).
