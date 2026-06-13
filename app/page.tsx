@@ -515,11 +515,15 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     (p: 'google' | 'tripadvisor') => {
       let url = venue.platformUrls[p];
       // Unconfigured tenant: degrade to the platform home page instead of a
-      // 404, and make the misconfiguration loud for monitoring.
+      // 404. Note it for devs only (a console.warn, not error, so it doesn't
+      // count as a dev-tools "issue" or spam real guests' consoles in prod).
+      // Real monitoring of this lands with Sentry in a later phase.
       if (url.includes('PLACEHOLDER')) {
-        console.error(
-          `[venue-config] platformUrls.${p} is not configured for tenant "${venue.tenantId}" — falling back to the platform home page.`,
-        );
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(
+            `[venue-config] platformUrls.${p} is not configured for tenant "${venue.tenantId}" — falling back to the platform home page.`,
+          );
+        }
         url = PLATFORM_FALLBACK_URLS[p];
       }
       // window.open MUST run synchronously inside the click's transient user

@@ -158,7 +158,7 @@ describe('platforms flow (5 stars)', () => {
   it('platform card opens the window synchronously and falls back on PLACEHOLDER urls', async () => {
     const user = userEvent.setup();
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(<RestaurantReviewApp />);
     await rateAndContinue(user, 5);
 
@@ -168,7 +168,7 @@ describe('platforms flow (5 stars)', () => {
     expect(String(url)).not.toContain('PLACEHOLDER'); // demo venue is unconfigured → fallback
     expect(target).toBe('_blank');
     expect(features).toContain('noopener');
-    expect(error).toHaveBeenCalled(); // misconfiguration is loud
+    expect(warn).toHaveBeenCalled(); // misconfiguration noted for devs
   });
 });
 
