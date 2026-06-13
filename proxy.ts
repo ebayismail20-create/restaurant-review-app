@@ -1,10 +1,11 @@
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
  * Per-request security proxy. Generates a fresh nonce, builds a strict
- * Content-Security-Policy bound to that nonce, and forwards both to the
- * page render so framework + custom <Script> tags pick it up.
+ * Content-Security-Policy bound to that nonce, forwards both to the page
+ * render, and refreshes the manager auth session on dashboard routes.
  *
  * Why nonce-based instead of static `'unsafe-inline'`?
  *  - Next.js streams inline <script> tags for hydration data, chunk
@@ -21,12 +22,23 @@ import type { NextRequest } from 'next/server';
  * largely static post-hydration anyway, and table-side QR scans don't
  * compound enough load to need edge caching.
  *
- * Phase 2 (backend) will widen connect-src to include the Supabase
- * project URL — search the file for `PHASE-2:` when that lands.
  */
 
 const SCRIPT_SELF = "'self'";
 const NONE = "'none'";
+
+// Supabase origin, for the manager dashboard's browser ↔ Supabase auth/data
+// calls. The guest flow still never calls Supabase from the browser, but
+// allowing one known, trusted origin in connect-src globally is simpler than
+// a per-path CSP and costs the guest path nothing meaningful.
+const SUPABASE_ORIGIN = (() => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  try {
+    return url ? new URL(url).origin : null;
+  } catch {
+    return null;
+  }
+})();
 
 function buildCsp(nonce: string, isDev: boolean): string {
   const directives: Record<string, readonly string[]> = {
@@ -69,11 +81,15 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // next/font self-hosts every font file under /_next/static/media/.
     'font-src': [SCRIPT_SELF],
 
-    // Guest submissions POST to our own /api/submissions (same-origin, so
-    // 'self' covers it). The browser never talks to Supabase directly — the
-    // API route does, server-side — so no Supabase origin is needed here.
-    // ws:/wss: are required for Next's HMR socket in dev.
-    'connect-src': [SCRIPT_SELF, ...(isDev ? ['ws:', 'wss:'] : [])],
+    // Guest submissions POST to our own /api/submissions (same-origin).
+    // The manager dashboard additionally calls Supabase auth/data from the
+    // browser — hence the Supabase origin. ws:/wss: are for Next's HMR
+    // socket in dev.
+    'connect-src': [
+      SCRIPT_SELF,
+      ...(SUPABASE_ORIGIN ? [SUPABASE_ORIGIN] : []),
+      ...(isDev ? ['ws:', 'wss:'] : []),
+    ],
 
     // Hard locks. We never iframe, never get iframed, never use plugins.
     'frame-src': [NONE],
@@ -100,7 +116,7 @@ function buildCsp(nonce: string, isDev: boolean): string {
     .join('; ');
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // crypto.randomUUID is universally available in the Edge runtime. We
   // base64 it because raw UUIDs contain hyphens, which are valid in CSP
   // but make some Web Application Firewalls nervous. Buffer is polyfilled
@@ -118,10 +134,46 @@ export function proxy(request: NextRequest) {
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('Content-Security-Policy', csp);
 
-  const response = NextResponse.next({
+  let response = NextResponse.next({
     request: { headers: requestHeaders },
   });
-  // The browser-facing CSP — same value, set on the response.
+
+  // Refresh the manager auth session on dashboard surfaces only. This keeps
+  // the Supabase cookie fresh (and lets server components read the session)
+  // without adding an auth round-trip to every guest page load. Following
+  // the canonical @supabase/ssr middleware pattern, threading our nonce
+  // headers through the recreated response.
+  const path = request.nextUrl.pathname;
+  if (
+    (path.startsWith('/dashboard') || path.startsWith('/login')) &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  ) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            response = NextResponse.next({ request: { headers: requestHeaders } });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options),
+            );
+          },
+        },
+      },
+    );
+    // getClaims validates + refreshes the token from the cookie. Do not run
+    // other logic between client creation and this call (ssr requirement).
+    await supabase.auth.getClaims();
+  }
+
+  // The browser-facing CSP — same value, set on the (possibly recreated)
+  // response.
   response.headers.set('Content-Security-Policy', csp);
   return response;
 }

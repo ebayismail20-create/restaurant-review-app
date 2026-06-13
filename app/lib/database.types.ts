@@ -151,6 +151,35 @@ export type Database = {
           },
         ]
       }
+      tenant_members: {
+        Row: {
+          created_at: string
+          role: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string
@@ -195,6 +224,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_tenant_ids: {
+        Args: Record<string, never>
+        Returns: string[]
+      }
       get_venue: {
         Args: {
           p_slug: string

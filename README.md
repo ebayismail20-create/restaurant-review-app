@@ -8,7 +8,7 @@ table, rates the visit (1–5 stars), and is routed by outcome:
 - **1–2★** → urgent "what went wrong" flow, plus an anonymous
   contact-the-manager escape hatch
 
-EN / FI / SV. Two ways in:
+EN / FI / SV. Guest entry points:
 
 - `/` — the single-venue demo (Bistro Nordic · Helsinki, via `DEMO_VENUE`).
 - `/r/[slug]/[table]?t=<token>` — **multi-tenant**. The QR printed for each
@@ -16,6 +16,13 @@ EN / FI / SV. Two ways in:
   venue (brand, tagline, platform URLs, server) is resolved server-side via
   the token-gated `get_venue` function; a wrong/guessed URL 404s. One
   deployment serves every tenant.
+
+Manager side:
+
+- `/login` + `/dashboard` — Supabase Auth (email/password). A manager sees
+  only their own tenant's feedback, enforced by Postgres RLS (the dashboard
+  code contains no tenant id — the database decides). Urgent items sort to
+  the top. Demo login: `manager@bistronordic.test` / `LoopDemo1234`.
 
 ## Stack
 
@@ -108,5 +115,6 @@ tests/                  vitest suites (lib units + review-flow integration)
   fall back to platform home pages and log a config error. Set real per-venue
   URLs before launch.
 - No production telemetry yet (Sentry planned).
-- No operator/manager dashboard yet — submissions are queryable in the DB,
-  and urgent ones email the manager, but there's no web UI to triage them.
+- Dashboard is read-only triage (v1) — no reply/resolve actions yet.
+- Demo manager account is seeded directly in the DB; production onboarding
+  (invite flow, leaked-password protection) is not built.
