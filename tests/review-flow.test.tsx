@@ -26,9 +26,16 @@ async function rateAndContinue(user: ReturnType<typeof userEvent.setup>, stars: 
 }
 
 beforeEach(() => {
-  // Silence the dev-mode payload logging so test output stays readable.
-  vi.spyOn(console, 'log').mockImplementation(() => {});
   window.localStorage.clear();
+  // notifyManager POSTs to /api/submissions; stub fetch with a 201 so the
+  // flow reaches the success screens. The endpoint itself is covered by the
+  // schema test and the live integration check.
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    new Response(JSON.stringify({ id: 'test-id' }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    }),
+  );
 });
 
 describe('rating screen', () => {

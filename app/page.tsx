@@ -21,8 +21,8 @@
  *  - No `dangerouslySetInnerHTML`. Translations render as plain text; line
  *    breaks are encoded as "\n" and surfaced via CSS `white-space: pre-line`.
  *  - No module-level venue state. Venue data flows from `./lib/venue`.
- *  - Typed contracts end-to-end (`./lib/types`). `notifyManager` takes a real
- *    `SubmissionPayload`, not `any`.
+ *  - Typed contracts end-to-end (`./lib/types`). `notifyManager` POSTs a
+ *    typed `ReviewRequest` to /api/submissions, not `any`.
  *  - Network-opened platform links use `noopener,noreferrer`.
  */
 
@@ -35,11 +35,10 @@ import {
   isLang,
   isRating,
   type Lang,
-  type Priority,
   type Rating,
+  type ReviewRequest,
   type Screen,
   type SubmissionKind,
-  type SubmissionPayload,
   type SuccessKind,
   type TagKey,
 } from './lib/types';
@@ -386,45 +385,36 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     [],
   );
 
-  const resolveTagLabels = useCallback(
-    (keys: ReadonlySet<TagKey>): { labels: string[]; tagKeys: TagKey[] } => {
+  /** Selected tags as stable machine keys, in canonical order. */
+  const resolveTagKeys = useCallback(
+    (keys: ReadonlySet<TagKey>): TagKey[] => {
       const allTags: readonly TagDef[] = [...POSITIVE_TAGS, ...NEGATIVE_TAGS];
-      const tagKeys: TagKey[] = [];
-      const labels: string[] = [];
-      for (const def of allTags) {
-        if (keys.has(def.key)) {
-          tagKeys.push(def.key);
-          labels.push(dict[def.labelKey]);
-        }
-      }
-      return { labels, tagKeys };
+      return allTags.filter((def) => keys.has(def.key)).map((def) => def.key);
     },
-    [dict],
+    [],
   );
 
-  const buildPayload = useCallback(
-    (kind: SubmissionKind, extra?: { message?: string }): SubmissionPayload => {
+  /**
+   * Build the wire request for POST /api/submissions. Deliberately narrow:
+   * the table token + slug authorize the post, but priority / timestamp /
+   * tenant are all decided server-side and intentionally absent here.
+   */
+  const buildRequest = useCallback(
+    (kind: SubmissionKind, extra?: { message?: string }): ReviewRequest => {
       const isNegative = isRating(currentRating) && currentRating <= 2;
       const contextualComment = isNegative ? commentSorry : commentImprove;
       const message =
         extra?.message !== undefined ? extra.message : contextualComment.trim();
-      const priority: Priority =
-        kind === 'alerted' ? 'urgent' : kind === 'private' ? 'normal' : 'info';
-      const { labels, tagKeys } = resolveTagLabels(selectedTags);
       return {
+        slug: venue.tenantId,
+        table: venue.tableNumber,
+        token: venue.tableToken,
         kind,
         rating: isRating(currentRating) ? currentRating : null,
-        tags: labels,
-        tagKeys,
+        tagKeys: resolveTagKeys(selectedTags),
         message,
         language: currentLang,
-        table: venue.tableNumber,
-        server: venue.serverName,
-        tenantId: venue.tenantId,
-        location: venue.locationName,
         session: sessionId,
-        timestamp: new Date().toISOString(),
-        priority,
       };
     },
     [
@@ -432,7 +422,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
       commentSorry,
       currentLang,
       currentRating,
-      resolveTagLabels,
+      resolveTagKeys,
       selectedTags,
       sessionId,
       venue,
@@ -440,15 +430,20 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   );
 
   /**
-   * Send payload to backend. Phase 2 will replace this mock with a fetch to
-   * /api/submissions. Today it simulates network latency and resolves — the
-   * contract (async, may throw) is what pages depend on.
+   * Persist the submission via POST /api/submissions. Throws on any
+   * non-2xx so callers can surface dict.sendError and let the guest retry.
+   * The server hashes the IP, verifies the table token, derives priority,
+   * and inserts — see app/api/submissions/route.ts.
    */
-  const notifyManager = useCallback(async (payload: SubmissionPayload): Promise<void> => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[notifyManager]', payload);
+  const notifyManager = useCallback(async (req: ReviewRequest): Promise<void> => {
+    const res = await fetch('/api/submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+    if (!res.ok) {
+      throw new Error(`submission failed: ${res.status}`);
     }
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 120));
   }, []);
 
   const showSuccessScreen = useCallback((kind: SuccessKind) => {
@@ -467,14 +462,14 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     setSendError(null);
     setSending(true);
     try {
-      await notifyManager(buildPayload('private'));
+      await notifyManager(buildRequest('private'));
       showSuccessScreen('private');
     } catch {
       setSendError(dict.sendError);
     } finally {
       setSending(false);
     }
-  }, [buildPayload, dict, notifyManager, showSuccessScreen]);
+  }, [buildRequest, dict, notifyManager, showSuccessScreen]);
 
   /**
    * 1-2★ urgent feedback. The comment textarea is hidden until the guest
@@ -492,14 +487,14 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     setSendError(null);
     setSending(true);
     try {
-      await notifyManager(buildPayload('alerted'));
+      await notifyManager(buildRequest('alerted'));
       showSuccessScreen('alerted');
     } catch {
       setSendError(dict.sendError);
     } finally {
       setSending(false);
     }
-  }, [buildPayload, dict, notifyManager, selectedTags, showSuccessScreen]);
+  }, [buildRequest, dict, notifyManager, selectedTags, showSuccessScreen]);
 
   /**
    * "Maybe next time" — 5★ guest opted out of leaving a public review.
@@ -508,13 +503,13 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
    */
   const finishFromPlatforms = useCallback(async () => {
     try {
-      await notifyManager(buildPayload('rated'));
+      await notifyManager(buildRequest('rated'));
     } catch {
       // Fire-and-forget — don't block the guest from leaving the screen if
       // the network is offline. The SW will retry via background sync (Phase 2).
     }
     showSuccessScreen('rated');
-  }, [buildPayload, notifyManager, showSuccessScreen]);
+  }, [buildRequest, notifyManager, showSuccessScreen]);
 
   const openPlatform = useCallback(
     (p: 'google' | 'tripadvisor') => {
@@ -534,12 +529,12 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
       // into this window.
       window.open(url, '_blank', 'noopener,noreferrer');
       // Analytics ping is fire-and-forget AFTER the open.
-      void notifyManager(buildPayload('posted', { message: `Chose platform: ${p}` })).catch(
+      void notifyManager(buildRequest('posted', { message: `Chose platform: ${p}` })).catch(
         () => { /* never block the review for analytics */ },
       );
       window.setTimeout(() => showSuccessScreen('posted'), 250);
     },
-    [buildPayload, notifyManager, showSuccessScreen, venue.platformUrls, venue.tenantId],
+    [buildRequest, notifyManager, showSuccessScreen, venue.platformUrls, venue.tenantId],
   );
 
   const openContact = useCallback(() => goTo('contact'), [goTo]);
@@ -553,7 +548,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     setSendError(null);
     setSending(true);
     try {
-      await notifyManager(buildPayload('anon-message', { message: msg }));
+      await notifyManager(buildRequest('anon-message', { message: msg }));
       setContactMessage('');
       showSuccessScreen('alerted');
     } catch {
@@ -561,7 +556,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     } finally {
       setSending(false);
     }
-  }, [buildPayload, contactMessage, dict, notifyManager, showSuccessScreen]);
+  }, [buildRequest, contactMessage, dict, notifyManager, showSuccessScreen]);
 
   const resetApp = useCallback(() => {
     setShowSuccess(false);

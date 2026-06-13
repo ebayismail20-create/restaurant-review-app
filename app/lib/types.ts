@@ -29,32 +29,41 @@ export type Screen =
  */
 export type SuccessKind = 'posted' | 'private' | 'alerted' | 'rated';
 
-export type Priority = 'urgent' | 'normal' | 'info';
-
 export type SubmissionKind = SuccessKind | 'anon-message';
 
 export type TagKey =
   | 'food' | 'wait' | 'service' | 'clean' | 'ambiance' | 'value'
   | 'food_bad' | 'service_bad' | 'wait_bad' | 'clean_bad' | 'price_bad' | 'other_bad';
 
+export const TAG_KEYS: readonly TagKey[] = [
+  'food', 'wait', 'service', 'clean', 'ambiance', 'value',
+  'food_bad', 'service_bad', 'wait_bad', 'clean_bad', 'price_bad', 'other_bad',
+] as const;
+
+export const SUBMISSION_KINDS: readonly SubmissionKind[] = [
+  'posted', 'private', 'alerted', 'rated', 'anon-message',
+] as const;
+
 /**
- * The payload that gets sent to the backend when a guest submits feedback.
- * This is the contract — any change here is a breaking change for the API.
+ * What the client sends over the wire to POST /api/submissions, and the
+ * complete contract — any change here is a breaking change for the API.
+ *
+ * Deliberately narrow: it carries the table token (physical-presence proof)
+ * and the venue slug, but NOT priority / timestamp / tenant — those are
+ * decided server-side (in the submit_review DB function) and any
+ * client-supplied value would be ignored. A small request shape is itself a
+ * security property: less attacker-controlled surface.
  */
-export interface SubmissionPayload {
+export interface ReviewRequest {
+  slug: string;
+  table: string;
+  token: string;
   kind: SubmissionKind;
   rating: Rating | null;
-  tags: string[];          // human-readable labels, already translated
-  tagKeys: TagKey[];       // stable machine keys, independent of language
+  tagKeys: TagKey[];
   message: string;
   language: Lang;
-  table: string;
-  server: string;
-  tenantId: string;
-  location: string;
-  session: string;         // crypto.randomUUID(), generated at visit time
-  timestamp: string;       // ISO 8601
-  priority: Priority;
+  session: string; // crypto.randomUUID()
 }
 
 /**

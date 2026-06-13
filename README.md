@@ -15,10 +15,35 @@ routing (`/r/[slug]/[table]`) is planned — see `PHASE-2:` markers in the code.
 
 - **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript strict**
 - Tailwind directives + a hand-written design system in `app/globals.css`
+- **Supabase** (Postgres) backend — submissions persist via a single
+  `/api/submissions` route → `submit_review` SECURITY DEFINER function
 - PWA: typed manifest (`app/manifest.ts`), service worker (`public/sw.js`,
   registered in production only), offline fallback
 - Security: nonce-based CSP via `proxy.ts`, full static header suite in
   `next.config.ts`
+
+## Backend
+
+Guest feedback is written through one path, designed so a leaked public key
+buys an attacker nothing:
+
+```
+client  ──POST /api/submissions──▶  route.ts  ──rpc submit_review()──▶  Postgres
+        (ReviewRequest: token,        (zod validate,                   (SECURITY DEFINER:
+         slug, kind, rating, …)        hash IP, call RPC)               verify token, derive
+                                                                        priority, insert)
+```
+
+- **RLS is deny-all** on every table. The anon/publishable key can only
+  `EXECUTE submit_review` — it can read or write no table directly.
+- The DB function is the sole writer: it verifies the per-table token,
+  resolves tenant/table, derives `priority` and `created_at`, and rate-limits
+  by hashed IP. Client-supplied priority/tenant are impossible to forge
+  because they aren't part of the request.
+- The service-role key is intentionally **not** used anywhere.
+
+Schema lives in the Supabase project (`tenants`, `tables`, `submissions`,
+`notifications`). Regenerate `app/lib/database.types.ts` after schema changes.
 
 ## Develop
 
@@ -47,9 +72,12 @@ tests/                  vitest suites (lib units + review-flow integration)
 
 ## Known gaps (deliberate, tracked)
 
-- `notifyManager` is a mock — submissions are not persisted until the
-  Phase 2 backend (`/api/submissions` + Supabase) lands. Success copy is
-  worded to avoid promising delivery SLAs until then.
-- `DEMO_VENUE.platformUrls` are placeholders; clicks fall back to platform
-  home pages and log a config error. Set real per-venue URLs before launch.
-- No production telemetry yet (Sentry planned alongside the backend).
+- **Manager notification delivery** isn't built yet — submissions persist to
+  the DB, but no email/push goes out (the `notifications` table is ready for
+  it). Until that lands, success copy avoids promising a response SLA.
+- `DEMO_VENUE.platformUrls` / the seeded tenant rows are placeholders; clicks
+  fall back to platform home pages and log a config error. Set real per-venue
+  URLs before launch.
+- Multi-tenant routing (`/r/[slug]/[table]`) not built — single demo venue
+  via `DEMO_VENUE`, token supplied through `NEXT_PUBLIC_DEMO_TABLE_TOKEN`.
+- No production telemetry yet (Sentry planned).

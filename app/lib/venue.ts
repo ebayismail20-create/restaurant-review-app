@@ -3,10 +3,15 @@
 // default that we can trace and replace.
 
 export interface VenueContext {
-  tenantId: string;       // stable slug used for DB lookups
+  tenantId: string;       // stable slug used for DB lookups (matches tenants.slug)
   locationName: string;   // display name
-  tableNumber: string;    // display label for the table
+  tableNumber: string;    // display label for the table (matches tables.label)
   serverName: string;     // display label for the server
+  // Per-table capability token. In production this rides in the QR URL and
+  // is rendered into the page server-side; the guest's browser is meant to
+  // hold it. It is NOT a server secret — it only authorizes posting AS this
+  // one table, and is revocable/rotatable per table.
+  tableToken: string;
   // Brand-specific config will live here in Phase 1.2 (review links, colors, etc.)
   platformUrls: {
     google: string;       // full Google "write a review" URL for this venue
@@ -32,6 +37,10 @@ export const DEMO_VENUE: VenueContext = {
   locationName: 'Bistro Nordic · Helsinki',
   tableNumber: '12',
   serverName: 'Anna',
+  // Seeded table token, supplied via env so the secret stays out of git.
+  // Empty in environments that haven't configured it → submissions fail
+  // closed (403) rather than silently succeeding.
+  tableToken: process.env.NEXT_PUBLIC_DEMO_TABLE_TOKEN ?? '',
   platformUrls: {
     // These are placeholders — in production these must be real venue-specific URLs.
     // Google: https://search.google.com/local/writereview?placeid=<PLACE_ID>

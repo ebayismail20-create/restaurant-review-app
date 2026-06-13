@@ -69,7 +69,9 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // next/font self-hosts every font file under /_next/static/media/.
     'font-src': [SCRIPT_SELF],
 
-    // PHASE-2: append the Supabase project URL when the backend lands.
+    // Guest submissions POST to our own /api/submissions (same-origin, so
+    // 'self' covers it). The browser never talks to Supabase directly — the
+    // API route does, server-side — so no Supabase origin is needed here.
     // ws:/wss: are required for Next's HMR socket in dev.
     'connect-src': [SCRIPT_SELF, ...(isDev ? ['ws:', 'wss:'] : [])],
 
