@@ -166,9 +166,12 @@ const en: Dict = {
   tripDesc: 'Trusted by international travellers',
   skipReview: 'Maybe next time',
 
-  successTitlePosted: 'Thank you for sharing',
+  // Tapping a platform only OPENS the review page — we can't know the guest
+  // actually posted, so this copy must not claim they did. It thanks them for
+  // the visit and frames reviews generally, true either way.
+  successTitlePosted: 'Thank you!',
   successMsgPosted:
-    'You just made our team’s day. We’re so grateful for kind guests like you.',
+    'Every review helps future guests discover us. We’re so glad you came in.',
   successTitlePrivate: 'Thank you for telling us',
   successMsgPrivate:
     'The manager reads every word. We’ll use this to make your next visit better.',
@@ -255,9 +258,9 @@ const fi: Dict = {
   tripDesc: 'Kansainvälisten matkailijoiden suosima',
   skipReview: 'Ehkä ensi kerralla',
 
-  successTitlePosted: 'Kiitos jakamisesta',
+  successTitlePosted: 'Kiitos!',
   successMsgPosted:
-    'Teit juuri tiimimme päivästä. Olemme äärettömän kiitollisia ystävällisistä vieraista.',
+    'Jokainen arvio auttaa tulevia vieraita löytämään meidät. Hienoa, että vierailit.',
   successTitlePrivate: 'Kiitos kun kerroit',
   successMsgPrivate:
     'Päällikkö lukee jokaisen sanan. Käytämme palautteesi seuraavan vierailusi parantamiseen.',
@@ -342,9 +345,9 @@ const sv: Dict = {
   tripDesc: 'Förtroende av internationella resenärer',
   skipReview: 'Kanske nästa gång',
 
-  successTitlePosted: 'Tack för att du delar',
+  successTitlePosted: 'Tack!',
   successMsgPosted:
-    'Du gjorde just vårt teams dag. Vi är så tacksamma för snälla gäster som dig.',
+    'Varje omdöme hjälper framtida gäster att hitta oss. Vad roligt att du kom in.',
   successTitlePrivate: 'Tack för att du berättade',
   successMsgPrivate:
     'Chefen läser varje ord. Vi använder din feedback för att göra ditt nästa besök bättre.',
