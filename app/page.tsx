@@ -44,8 +44,10 @@ import {
 } from './lib/types';
 import {
   DEMO_VENUE,
-  PLATFORM_FALLBACK_URLS,
   createSessionId,
+  resolvePlatformUrl,
+  type Platform,
+  type PlatformKind,
   type VenueContext,
 } from './lib/venue';
 
@@ -106,6 +108,50 @@ const NEGATIVE_TAGS: readonly TagDef[] = [
   { key: 'price_bad', icon: 'price', labelKey: 'tag_price_bad' },
   { key: 'other_bad', icon: 'other', labelKey: 'tag_other_bad' },
 ];
+
+// Platform icons. Google and Tripadvisor get their brand marks; every other
+// owner-added platform (Yelp, OpenTable, their website, anything) gets a clean
+// generic globe so the card still looks intentional.
+function PlatformIcon({ kind }: { kind: PlatformKind }) {
+  if (kind === 'google') {
+    return (
+      <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" />
+        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+      </svg>
+    );
+  }
+  if (kind === 'tripadvisor') {
+    return (
+      <svg width="34" height="34" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <circle cx="24" cy="24" r="20" fill="#00AF87" />
+        <circle cx="16" cy="22" r="6" fill="#fff" />
+        <circle cx="32" cy="22" r="6" fill="#fff" />
+        <circle cx="16" cy="22" r="2.5" fill="#1B1B1B" />
+        <circle cx="32" cy="22" r="2.5" fill="#1B1B1B" />
+      </svg>
+    );
+  }
+  // Generic mark for any other owner-added platform.
+  return (
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="var(--button)"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  );
+}
 
 // --- Component --------------------------------------------------------------
 
@@ -498,19 +544,15 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   }, [buildRequest, notifyManager, showSuccessScreen]);
 
   const openPlatform = useCallback(
-    (p: 'google' | 'tripadvisor') => {
-      let url = venue.platformUrls[p];
-      // Unconfigured tenant: degrade to the platform home page instead of a
+    (platform: Platform) => {
+      const { url, placeholder } = resolvePlatformUrl(platform);
+      // Unconfigured platform: degrade to the platform home page instead of a
       // 404. Note it for devs only (a console.warn, not error, so it doesn't
       // count as a dev-tools "issue" or spam real guests' consoles in prod).
-      // Real monitoring of this lands with Sentry in a later phase.
-      if (url.includes('PLACEHOLDER')) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn(
-            `[venue-config] platformUrls.${p} is not configured for tenant "${venue.tenantId}" — falling back to the platform home page.`,
-          );
-        }
-        url = PLATFORM_FALLBACK_URLS[p];
+      if (placeholder && process.env.NODE_ENV !== 'production') {
+        console.warn(
+          `[venue-config] ${platform.kind} link is not configured for tenant "${venue.tenantId}" — falling back to the platform home page.`,
+        );
       }
       // window.open MUST run synchronously inside the click's transient user
       // activation — an `await` before it (even a fast one) lets Safari and
@@ -519,12 +561,12 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
       // into this window.
       window.open(url, '_blank', 'noopener,noreferrer');
       // Analytics ping is fire-and-forget AFTER the open.
-      void notifyManager(buildRequest('posted', { message: `Chose platform: ${p}` })).catch(
-        () => { /* never block the review for analytics */ },
-      );
+      void notifyManager(
+        buildRequest('posted', { message: `Chose platform: ${platform.kind}` }),
+      ).catch(() => { /* never block the review for analytics */ });
       window.setTimeout(() => showSuccessScreen('posted'), 250);
     },
-    [buildRequest, notifyManager, showSuccessScreen, venue.platformUrls, venue.tenantId],
+    [buildRequest, notifyManager, showSuccessScreen, venue.tenantId],
   );
 
   const openContact = useCallback(() => goTo('contact'), [goTo]);
@@ -688,6 +730,18 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
         >
           <div className="venue-header">
             <div className="venue-brand">
+              {venue.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="venue-logo" src={venue.logoUrl} alt={venue.brandName} />
+              ) : venue.brandColor ? (
+                <span
+                  className="venue-monogram"
+                  style={{ background: venue.brandColor }}
+                  aria-hidden="true"
+                >
+                  {venue.brandName.charAt(0)}
+                </span>
+              ) : null}
               <span className="venue-brand-name">{venue.brandName}</span>
               <span className="venue-brand-tag">{venue.brandTag}</span>
             </div>
@@ -1024,74 +1078,39 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
             </h2>
             <p className="platforms-sub">{dict.platformsSub}</p>
 
-            <button
-              type="button"
-              className="platform-card"
-              data-platform="google"
-              onClick={() => openPlatform('google')}
-            >
-              <div className="platform-icon" aria-hidden="true">
-                <svg width="34" height="34" viewBox="0 0 48 48">
-                  <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
-                  <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" />
-                  <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
-                  <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
-                </svg>
-              </div>
-              <div className="platform-info">
-                <div className="platform-name">Google</div>
-                <div className="platform-stars" aria-hidden="true">★★★★★</div>
-                <div className="platform-desc">{dict.googleDesc}</div>
-              </div>
-              <span className="platform-cta" aria-hidden="true">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              className="platform-card"
-              data-platform="tripadvisor"
-              onClick={() => openPlatform('tripadvisor')}
-            >
-              <div className="platform-icon" aria-hidden="true">
-                <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
-                  <circle cx="24" cy="24" r="20" fill="#00AF87" />
-                  <circle cx="16" cy="22" r="6" fill="#fff" />
-                  <circle cx="32" cy="22" r="6" fill="#fff" />
-                  <circle cx="16" cy="22" r="2.5" fill="#1B1B1B" />
-                  <circle cx="32" cy="22" r="2.5" fill="#1B1B1B" />
-                </svg>
-              </div>
-              <div className="platform-info">
-                <div className="platform-name">Tripadvisor</div>
-                <div className="platform-stars" aria-hidden="true">★★★★★</div>
-                <div className="platform-desc">{dict.tripDesc}</div>
-              </div>
-              <span className="platform-cta" aria-hidden="true">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </span>
-            </button>
+            {/* The platforms the owner configured in the dashboard, in order.
+                Google/Tripadvisor get brand marks; anything else gets a clean
+                generic icon. */}
+            {venue.platforms.map((platform) => (
+              <button
+                type="button"
+                key={`${platform.kind}-${platform.url}`}
+                className="platform-card"
+                data-platform={platform.kind}
+                onClick={() => openPlatform(platform)}
+              >
+                <div className="platform-icon" aria-hidden="true">
+                  <PlatformIcon kind={platform.kind} />
+                </div>
+                <div className="platform-info">
+                  <div className="platform-name">{platform.label}</div>
+                  <div className="platform-stars" aria-hidden="true">★★★★★</div>
+                </div>
+                <span className="platform-cta" aria-hidden="true">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </button>
+            ))}
 
             <button type="button" className="skip" onClick={finishFromPlatforms}>
               {dict.skipReview}

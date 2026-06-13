@@ -4,8 +4,8 @@ import { format, i18n } from '../app/lib/dictionaries';
 import { isLang, isRating } from '../app/lib/types';
 import {
   DEMO_VENUE,
-  PLATFORM_FALLBACK_URLS,
   createSessionId,
+  resolvePlatformUrl,
   venueFromRow,
   type VenueRow,
 } from '../app/lib/venue';
@@ -74,21 +74,35 @@ describe('format()', () => {
   });
 });
 
-describe('venue config', () => {
-  it('provides a fallback URL for every platform', () => {
-    for (const key of Object.keys(DEMO_VENUE.platformUrls) as Array<
-      keyof typeof DEMO_VENUE.platformUrls
-    >) {
-      expect(PLATFORM_FALLBACK_URLS[key]).toMatch(/^https:\/\//);
-      expect(PLATFORM_FALLBACK_URLS[key]).not.toContain('PLACEHOLDER');
-    }
+describe('resolvePlatformUrl', () => {
+  it('passes real owner links through untouched', () => {
+    const r = resolvePlatformUrl({ kind: 'google', label: 'Google', url: 'https://g.example/r' });
+    expect(r).toEqual({ url: 'https://g.example/r', placeholder: false });
   });
 
+  it('falls back to a real home page for unconfigured PLACEHOLDER links', () => {
+    const r = resolvePlatformUrl({
+      kind: 'tripadvisor',
+      label: 'Tripadvisor',
+      url: 'https://www.tripadvisor.com/UserReviewEdit-PLACEHOLDER',
+    });
+    expect(r.placeholder).toBe(true);
+    expect(r.url).toMatch(/^https:\/\//);
+    expect(r.url).not.toContain('PLACEHOLDER');
+  });
+});
+
+describe('venue config', () => {
   it('createSessionId returns unique UUID-shaped ids', () => {
     const a = createSessionId();
     const b = createSessionId();
     expect(a).not.toBe(b);
     expect(a).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  });
+
+  it('DEMO_VENUE ships a platforms array', () => {
+    expect(Array.isArray(DEMO_VENUE.platforms)).toBe(true);
+    expect(DEMO_VENUE.platforms.length).toBeGreaterThan(0);
   });
 });
 
@@ -97,9 +111,13 @@ describe('venueFromRow', () => {
     brand_name: 'Cafe Aalto',
     tagline: 'Bakery · Turku',
     location_name: 'Cafe Aalto · Turku',
-    google_review_url: 'https://g.example/review',
-    tripadvisor_review_url: 'https://ta.example/review',
+    logo_url: null,
+    brand_color: '#123456',
     server_name: 'Eero',
+    platforms: [
+      { kind: 'google', label: 'Google', url: 'https://g.example/review' },
+      { kind: 'yelp', label: 'Yelp', url: 'https://yelp.example/review' },
+    ],
   };
 
   it('maps a DB row + URL coordinates into a VenueContext', () => {
@@ -111,24 +129,22 @@ describe('venueFromRow', () => {
       tableNumber: '5',
       serverName: 'Eero',
       tableToken: 'tok123',
+      brandColor: '#123456',
+      logoUrl: null,
     });
-    expect(v.platformUrls.google).toBe('https://g.example/review');
+    expect(v.platforms).toHaveLength(2);
+    expect(v.platforms[0]).toEqual({ kind: 'google', label: 'Google', url: 'https://g.example/review' });
   });
 
-  it('falls back to platform home pages when a tenant URL is null', () => {
+  it('tolerates a null tagline / server and a missing platforms array', () => {
     const v = venueFromRow(
-      { ...row, google_review_url: null, tripadvisor_review_url: null },
-      'cafe-aalto',
-      '5',
-      'tok',
+      { ...row, tagline: null, server_name: null, platforms: undefined as never },
+      's',
+      '1',
+      't',
     );
-    expect(v.platformUrls.google).toBe(PLATFORM_FALLBACK_URLS.google);
-    expect(v.platformUrls.tripadvisor).toBe(PLATFORM_FALLBACK_URLS.tripadvisor);
-  });
-
-  it('tolerates a null tagline / server', () => {
-    const v = venueFromRow({ ...row, tagline: null, server_name: null }, 's', '1', 't');
     expect(v.brandTag).toBe('');
     expect(v.serverName).toBe('');
+    expect(v.platforms).toEqual([]);
   });
 });

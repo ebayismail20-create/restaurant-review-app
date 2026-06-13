@@ -35,7 +35,9 @@ export default async function VenuePage({
       p_token: token,
     });
     if (error) throw error;
-    rows = data as VenueRow[];
+    // platforms comes back as Json from the RPC; VenueRow types it as
+    // Platform[] (its actual shape), so cast through unknown.
+    rows = data as unknown as VenueRow[];
   } catch (e) {
     // Misconfiguration (no Supabase env) or transport failure. Don't expose
     // internals to the guest — a 404 is the honest "this code didn't resolve".

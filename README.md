@@ -13,9 +13,18 @@ EN / FI / SV. Guest entry points:
 - `/` — the single-venue demo (Bistro Nordic · Helsinki, via `DEMO_VENUE`).
 - `/r/[slug]/[table]?t=<token>` — **multi-tenant**. The QR printed for each
   physical table encodes this URL with the table's unguessable token. The
-  venue (brand, tagline, platform URLs, server) is resolved server-side via
-  the token-gated `get_venue` function; a wrong/guessed URL 404s. One
-  deployment serves every tenant.
+  venue is resolved server-side via the token-gated `get_venue` function; a
+  wrong/guessed URL 404s. One deployment serves every tenant.
+
+Everything venue-specific is **owner-configured (in the dashboard) and read
+from the database** — the guest app hardcodes nothing:
+
+- **Branding**: `logo_url` + `brand_color` → the welcome shows the logo, or a
+  monogram tile in the brand color, then the name + tagline.
+- **Review platforms**: the `tenant_platforms` table holds an ordered,
+  toggleable list. An owner can show Google only, Tripadvisor, both, or any
+  other platform/website via a custom label + link. Google/Tripadvisor get
+  brand icons; anything else gets a clean generic mark.
 
 This repo is the **guest-facing rating app only**. The manager dashboard is a
 separate application (it reads the same Supabase database via authenticated,

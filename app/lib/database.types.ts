@@ -180,12 +180,55 @@ export type Database = {
           },
         ]
       }
+      tenant_platforms: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          kind: string
+          label: string
+          sort_order: number
+          tenant_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind: string
+          label: string
+          sort_order?: number
+          tenant_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          label?: string
+          sort_order?: number
+          tenant_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_platforms_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
+          brand_color: string | null
           created_at: string
           google_review_url: string | null
           id: string
           location_name: string
+          logo_url: string | null
           manager_email: string | null
           manager_name: string | null
           name: string
@@ -238,9 +281,10 @@ export type Database = {
           brand_name: string
           tagline: string
           location_name: string
-          google_review_url: string
-          tripadvisor_review_url: string
+          logo_url: string
+          brand_color: string
           server_name: string
+          platforms: Json
         }[]
       }
       submit_review: {

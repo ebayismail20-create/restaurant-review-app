@@ -76,8 +76,6 @@ export interface Dict {
   // Platforms
   platformsTitle: string;
   platformsSub: string;
-  googleDesc: string;
-  tripDesc: string;
   skipReview: string;
 
   // Success — copy keyed by outcome so the overlay stays honest about what
@@ -162,8 +160,6 @@ const en: Dict = {
 
   platformsTitle: 'Help future guests\nfind us.',
   platformsSub: 'Pick a platform — thirty seconds, and it means everything to our team.',
-  googleDesc: 'Where most guests discover us',
-  tripDesc: 'Trusted by international travellers',
   skipReview: 'Maybe next time',
 
   // Tapping a platform only OPENS the review page — we can't know the guest
@@ -254,8 +250,6 @@ const fi: Dict = {
 
   platformsTitle: 'Auta tulevia vieraita\nlöytämään meidät.',
   platformsSub: 'Valitse alusta — kolmekymmentä sekuntia, ja se merkitsee tiimillemme paljon.',
-  googleDesc: 'Yleisin paikka, josta meidät löydetään',
-  tripDesc: 'Kansainvälisten matkailijoiden suosima',
   skipReview: 'Ehkä ensi kerralla',
 
   successTitlePosted: 'Kiitos!',
@@ -341,8 +335,6 @@ const sv: Dict = {
 
   platformsTitle: 'Hjälp framtida gäster\natt hitta oss.',
   platformsSub: 'Välj en plattform — trettio sekunder, och det betyder allt för vårt team.',
-  googleDesc: 'Där flest gäster hittar oss',
-  tripDesc: 'Förtroende av internationella resenärer',
   skipReview: 'Kanske nästa gång',
 
   successTitlePosted: 'Tack!',
