@@ -43,7 +43,30 @@ client  ──POST /api/submissions──▶  route.ts  ──rpc submit_review(
 - The service-role key is intentionally **not** used anywhere.
 
 Schema lives in the Supabase project (`tenants`, `tables`, `submissions`,
-`notifications`). Regenerate `app/lib/database.types.ts` after schema changes.
+`notifications`) and is version-controlled in `supabase/migrations/`.
+Regenerate `app/lib/database.types.ts` after schema changes.
+
+### Manager alerts
+
+Manager-facing submissions (1–2★ urgent, 3–4★ private, anonymous messages)
+enqueue a `notifications` row **inside the same transaction** as the
+submission — if feedback saves, the alert is guaranteed queued. The
+`notify-manager` Edge Function (`supabase/functions/notify-manager`) does the
+send: it runs with the service-role key Supabase injects, so that privilege
+never enters the Next app. The API route invokes it server-side after a
+manager-facing submission; failures leave the row `pending`/`failed` and
+never affect the guest's confirmation.
+
+To turn on real email delivery, set two secrets on the Edge Function (no app
+redeploy needed):
+
+```bash
+supabase secrets set RESEND_API_KEY=re_xxx        # required
+supabase secrets set NOTIFY_FROM="Loop <reviews@yourdomain>"  # optional; defaults to Resend onboarding
+```
+
+and set each tenant's `manager_email`. Until then the pipeline runs and
+records `failed: no_email_provider_configured` so it stays observable.
 
 ## Develop
 

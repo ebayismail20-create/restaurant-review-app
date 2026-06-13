@@ -102,7 +102,41 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'server_error' }, { status: 500 });
   }
 
+  // Fire the manager alert for the queued submission (no-op for positive
+  // kinds). Never blocks or fails the guest's confirmation.
+  await triggerNotification(supabase, req.kind, data);
+
   return NextResponse.json({ id: data }, { status: 201 });
+}
+
+// Kinds that page the manager. Mirrors the enqueue condition in the
+// submit_review DB function: urgent complaints, private feedback, and
+// anonymous messages each queue a pending alert this set should drain.
+const MANAGER_FACING = new Set(['alerted', 'private', 'anon-message']);
+
+/**
+ * Trigger delivery of the alert that submit_review already queued. The Edge
+ * Function does the privileged send; we invoke it server-side with the anon
+ * key (the browser never calls it, so connect-src is unchanged).
+ *
+ * Failures are non-fatal: the notification row stays 'pending' and can be
+ * re-driven later, and the guest's submission is already saved. We await so
+ * the invocation fires before a serverless function can freeze, but swallow
+ * everything so it can't affect the 201.
+ */
+async function triggerNotification(
+  supabase: ReturnType<typeof getSupabase>,
+  kind: string,
+  submissionId: string,
+): Promise<void> {
+  if (!MANAGER_FACING.has(kind)) return;
+  try {
+    await supabase.functions.invoke('notify-manager', {
+      body: { submission_id: submissionId },
+    });
+  } catch (e) {
+    console.error('[api/submissions] notify-manager invoke failed:', (e as Error).message);
+  }
 }
 
 // Anything other than POST is meaningless here.
