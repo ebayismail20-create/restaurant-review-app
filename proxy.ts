@@ -40,7 +40,7 @@ const SUPABASE_ORIGIN = (() => {
   }
 })();
 
-function buildCsp(nonce: string, isDev: boolean): string {
+function buildCsp(nonce: string, isDev: boolean, allowSupabase: boolean): string {
   const directives: Record<string, readonly string[]> = {
     // Default fallback for any directive we don't explicitly set.
     'default-src': [SCRIPT_SELF],
@@ -81,13 +81,14 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // next/font self-hosts every font file under /_next/static/media/.
     'font-src': [SCRIPT_SELF],
 
-    // Guest submissions POST to our own /api/submissions (same-origin).
-    // The manager dashboard additionally calls Supabase auth/data from the
-    // browser — hence the Supabase origin. ws:/wss: are for Next's HMR
-    // socket in dev.
+    // Guest submissions POST to our own /api/submissions (same-origin), so
+    // guest pages stay locked to 'self' — the browser never calls Supabase
+    // there. Only the manager surfaces (dashboard/login) talk to Supabase
+    // from the browser, so the Supabase origin is added just for those.
+    // ws:/wss: are for Next's HMR socket in dev.
     'connect-src': [
       SCRIPT_SELF,
-      ...(SUPABASE_ORIGIN ? [SUPABASE_ORIGIN] : []),
+      ...(allowSupabase && SUPABASE_ORIGIN ? [SUPABASE_ORIGIN] : []),
       ...(isDev ? ['ws:', 'wss:'] : []),
     ],
 
@@ -124,7 +125,11 @@ export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const isDev = process.env.NODE_ENV === 'development';
 
-  const csp = buildCsp(nonce, isDev);
+  // Only the manager surfaces need Supabase in connect-src; guest pages stay
+  // tight ('self').
+  const path = request.nextUrl.pathname;
+  const isManagerPath = path.startsWith('/dashboard') || path.startsWith('/login');
+  const csp = buildCsp(nonce, isDev, isManagerPath);
 
   // Forward the nonce to server components via a request header so
   // app/layout.tsx can attach it to <Script> tags. The CSP itself is
@@ -143,9 +148,8 @@ export async function proxy(request: NextRequest) {
   // without adding an auth round-trip to every guest page load. Following
   // the canonical @supabase/ssr middleware pattern, threading our nonce
   // headers through the recreated response.
-  const path = request.nextUrl.pathname;
   if (
-    (path.startsWith('/dashboard') || path.startsWith('/login')) &&
+    isManagerPath &&
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   ) {

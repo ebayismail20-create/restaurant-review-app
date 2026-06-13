@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import { reviewRequestSchema } from '../../lib/submission-schema';
@@ -102,9 +102,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'server_error' }, { status: 500 });
   }
 
-  // Fire the manager alert for the queued submission (no-op for positive
-  // kinds). Never blocks or fails the guest's confirmation.
-  await triggerNotification(supabase, req.kind, data);
+  // Fire the manager alert AFTER the response is sent (Next's after()). The
+  // alert is already durably enqueued by submit_review, so the guest never
+  // waits on the email pipeline — their confirmation is instant, and the
+  // Edge Function invoke runs post-response. No-op for positive kinds.
+  after(() => triggerNotification(supabase, req.kind, data));
 
   return NextResponse.json({ id: data }, { status: 201 });
 }
