@@ -17,12 +17,10 @@ EN / FI / SV. Guest entry points:
   the token-gated `get_venue` function; a wrong/guessed URL 404s. One
   deployment serves every tenant.
 
-Manager side:
-
-- `/login` + `/dashboard` — Supabase Auth (email/password). A manager sees
-  only their own tenant's feedback, enforced by Postgres RLS (the dashboard
-  code contains no tenant id — the database decides). Urgent items sort to
-  the top. Demo login: `manager@bistronordic.test` / `LoopDemo1234`.
+This repo is the **guest-facing rating app only**. The manager dashboard is a
+separate application (it reads the same Supabase database via authenticated,
+RLS-scoped access). The shared schema — including the manager-facing
+`tenant_members` table and read policies — lives in `supabase/migrations/`.
 
 ## Stack
 
@@ -98,23 +96,24 @@ deployed environments.
 
 ```
 app/page.tsx            the entire guest flow (single client component)
-app/lib/types.ts        shared contracts incl. SubmissionPayload (the API contract)
+app/r/[slug]/[table]/   multi-tenant entry point (token-gated venue resolve)
+app/api/submissions/    the one write endpoint → submit_review RPC
+app/lib/types.ts        shared contracts incl. ReviewRequest (the API contract)
 app/lib/dictionaries.ts typed EN/FI/SV copy — every key required in every language
-app/lib/venue.ts        venue context; DEMO_VENUE until multi-tenant routing lands
+app/lib/venue.ts        venue context; DEMO_VENUE powers the bare "/" demo
 app/components/         presentational pieces (tag icons)
 proxy.ts                per-request CSP nonce + security headers
+supabase/               migrations + the notify-manager Edge Function
 tests/                  vitest suites (lib units + review-flow integration)
 ```
 
 ## Known gaps (deliberate, tracked)
 
-- **Manager notification delivery** isn't built yet — submissions persist to
-  the DB, but no email/push goes out (the `notifications` table is ready for
-  it). Until that lands, success copy avoids promising a response SLA.
+- **Email delivery is dormant** — the notification pipeline runs and records
+  status, but no email actually sends until `RESEND_API_KEY` is set on the
+  Edge Function (see Manager alerts). Success copy avoids promising an SLA
+  until then.
 - `DEMO_VENUE.platformUrls` / the seeded tenant rows are placeholders; clicks
   fall back to platform home pages and log a config error. Set real per-venue
   URLs before launch.
 - No production telemetry yet (Sentry planned).
-- Dashboard is read-only triage (v1) — no reply/resolve actions yet.
-- Demo manager account is seeded directly in the DB; production onboarding
-  (invite flow, leaked-password protection) is not built.

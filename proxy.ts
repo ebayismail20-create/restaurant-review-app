@@ -1,11 +1,10 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
  * Per-request security proxy. Generates a fresh nonce, builds a strict
- * Content-Security-Policy bound to that nonce, forwards both to the page
- * render, and refreshes the manager auth session on dashboard routes.
+ * Content-Security-Policy bound to that nonce, and forwards both to the
+ * page render so framework + custom <Script> tags pick it up.
  *
  * Why nonce-based instead of static `'unsafe-inline'`?
  *  - Next.js streams inline <script> tags for hydration data, chunk
@@ -21,26 +20,12 @@ import type { NextRequest } from 'next/server';
  * is fine — we don't gain meaningful CDN caching since the page is
  * largely static post-hydration anyway, and table-side QR scans don't
  * compound enough load to need edge caching.
- *
  */
 
 const SCRIPT_SELF = "'self'";
 const NONE = "'none'";
 
-// Supabase origin, for the manager dashboard's browser ↔ Supabase auth/data
-// calls. The guest flow still never calls Supabase from the browser, but
-// allowing one known, trusted origin in connect-src globally is simpler than
-// a per-path CSP and costs the guest path nothing meaningful.
-const SUPABASE_ORIGIN = (() => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
-  try {
-    return url ? new URL(url).origin : null;
-  } catch {
-    return null;
-  }
-})();
-
-function buildCsp(nonce: string, isDev: boolean, allowSupabase: boolean): string {
+function buildCsp(nonce: string, isDev: boolean): string {
   const directives: Record<string, readonly string[]> = {
     // Default fallback for any directive we don't explicitly set.
     'default-src': [SCRIPT_SELF],
@@ -82,15 +67,10 @@ function buildCsp(nonce: string, isDev: boolean, allowSupabase: boolean): string
     'font-src': [SCRIPT_SELF],
 
     // Guest submissions POST to our own /api/submissions (same-origin), so
-    // guest pages stay locked to 'self' — the browser never calls Supabase
-    // there. Only the manager surfaces (dashboard/login) talk to Supabase
-    // from the browser, so the Supabase origin is added just for those.
-    // ws:/wss: are for Next's HMR socket in dev.
-    'connect-src': [
-      SCRIPT_SELF,
-      ...(allowSupabase && SUPABASE_ORIGIN ? [SUPABASE_ORIGIN] : []),
-      ...(isDev ? ['ws:', 'wss:'] : []),
-    ],
+    // 'self' covers everything — the browser never calls Supabase directly;
+    // the API route does, server-side. ws:/wss: are for Next's HMR socket
+    // in dev.
+    'connect-src': [SCRIPT_SELF, ...(isDev ? ['ws:', 'wss:'] : [])],
 
     // Hard locks. We never iframe, never get iframed, never use plugins.
     'frame-src': [NONE],
@@ -117,7 +97,7 @@ function buildCsp(nonce: string, isDev: boolean, allowSupabase: boolean): string
     .join('; ');
 }
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // crypto.randomUUID is universally available in the Edge runtime. We
   // base64 it because raw UUIDs contain hyphens, which are valid in CSP
   // but make some Web Application Firewalls nervous. Buffer is polyfilled
@@ -125,11 +105,7 @@ export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const isDev = process.env.NODE_ENV === 'development';
 
-  // Only the manager surfaces need Supabase in connect-src; guest pages stay
-  // tight ('self').
-  const path = request.nextUrl.pathname;
-  const isManagerPath = path.startsWith('/dashboard') || path.startsWith('/login');
-  const csp = buildCsp(nonce, isDev, isManagerPath);
+  const csp = buildCsp(nonce, isDev);
 
   // Forward the nonce to server components via a request header so
   // app/layout.tsx can attach it to <Script> tags. The CSP itself is
@@ -139,52 +115,17 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('Content-Security-Policy', csp);
 
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
-
-  // Refresh the manager auth session on dashboard surfaces only. This keeps
-  // the Supabase cookie fresh (and lets server components read the session)
-  // without adding an auth round-trip to every guest page load. Following
-  // the canonical @supabase/ssr middleware pattern, threading our nonce
-  // headers through the recreated response.
-  if (
-    isManagerPath &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-  ) {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-            response = NextResponse.next({ request: { headers: requestHeaders } });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
-            );
-          },
-        },
-      },
-    );
-    // getClaims validates + refreshes the token from the cookie. Do not run
-    // other logic between client creation and this call (ssr requirement).
-    await supabase.auth.getClaims();
-  }
-
-  // The browser-facing CSP — same value, set on the (possibly recreated)
-  // response.
+  // The browser-facing CSP — same value, set on the response.
   response.headers.set('Content-Security-Policy', csp);
   return response;
 }
 
 /**
  * Skip the proxy on responses that don't need a CSP:
- *  - api routes (Phase 2 will mount its own per-route CSP if needed)
+ *  - api routes (they set their own headers if needed)
  *  - _next/static, _next/image: hashed bundles, no script execution surface
  *  - favicon.ico, manifest.webmanifest: not HTML
  *  - sw.js, offline.html: SW already has bespoke headers in next.config
