@@ -151,7 +151,8 @@ describe('platforms flow (5 stars)', () => {
     await waitFor(() =>
       expect(screen.getByText('Thank you for the rating')).toBeInTheDocument(),
     );
-    expect(screen.getByText('5-star rating saved')).toBeInTheDocument();
+    // Honest copy, and no dishonest "posted a public review" claim.
+    expect(screen.queryByText(/Thank you for sharing/)).not.toBeInTheDocument();
   });
 
   it('platform card opens the window synchronously and falls back on PLACEHOLDER urls', async () => {

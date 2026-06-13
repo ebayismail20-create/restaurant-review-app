@@ -91,10 +91,6 @@ export interface Dict {
   successMsgAlerted: string;
   successTitleRated: string;
   successMsgRated: string;
-  alertChipAlerted: string;
-  alertChipPrivate: string;
-  alertChipPosted: string;
-  alertChipRated: string;
   done: string;
 
   // Contact (anonymous)
@@ -184,10 +180,6 @@ const en: Dict = {
   successTitleRated: 'Thank you for the rating',
   successMsgRated:
     'We’re so glad you enjoyed your visit. We hope to see you again soon.',
-  alertChipAlerted: 'Manager notified just now',
-  alertChipPrivate: 'Saved to manager inbox',
-  alertChipPosted: 'Thank you for sharing',
-  alertChipRated: '5-star rating saved',
   done: 'Done',
 
   fabLabel: 'Contact manager anonymously',
@@ -275,10 +267,6 @@ const fi: Dict = {
   successTitleRated: 'Kiitos arvosanasta',
   successMsgRated:
     'Hienoa, että nautit vierailustasi. Toivottavasti tapaamme pian uudelleen.',
-  alertChipAlerted: 'Päällikkö hälytetty juuri nyt',
-  alertChipPrivate: 'Tallennettu päällikön postilaatikkoon',
-  alertChipPosted: 'Kiitos jakamisesta',
-  alertChipRated: '5 tähden arvio tallennettu',
   done: 'Valmis',
 
   fabLabel: 'Ota yhteyttä anonyymisti',
@@ -366,10 +354,6 @@ const sv: Dict = {
   successTitleRated: 'Tack för betyget',
   successMsgRated:
     'Vi är så glada att du trivdes hos oss. Vi hoppas se dig igen snart.',
-  alertChipAlerted: 'Chefen meddelad just nu',
-  alertChipPrivate: 'Sparat i chefens inkorg',
-  alertChipPosted: 'Tack för att du delar',
-  alertChipRated: '5-stjärnigt betyg sparat',
   done: 'Klar',
 
   fabLabel: 'Kontakta chefen anonymt',

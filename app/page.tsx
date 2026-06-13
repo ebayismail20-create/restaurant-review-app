@@ -602,36 +602,19 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
       : format(dict.tagsSelectedAnnouncement, { n: selectedTags.size });
 
   /**
-   * Success-overlay copy keyed off successKind. Centralized so the three
-   * lines (title + body + chip) stay coherent. The exhaustive switch lets
+   * Success-overlay copy keyed off successKind. The exhaustive switch lets
    * TypeScript flag any future SuccessKind additions that forget copy.
    */
-  const successCopy: { title: string; msg: string; chip: string } = (() => {
+  const successCopy: { title: string; msg: string } = (() => {
     switch (successKind) {
       case 'alerted':
-        return {
-          title: dict.successTitleAlerted,
-          msg: dict.successMsgAlerted,
-          chip: dict.alertChipAlerted,
-        };
+        return { title: dict.successTitleAlerted, msg: dict.successMsgAlerted };
       case 'private':
-        return {
-          title: dict.successTitlePrivate,
-          msg: dict.successMsgPrivate,
-          chip: dict.alertChipPrivate,
-        };
+        return { title: dict.successTitlePrivate, msg: dict.successMsgPrivate };
       case 'rated':
-        return {
-          title: dict.successTitleRated,
-          msg: dict.successMsgRated,
-          chip: dict.alertChipRated,
-        };
+        return { title: dict.successTitleRated, msg: dict.successMsgRated };
       case 'posted':
-        return {
-          title: dict.successTitlePosted,
-          msg: dict.successMsgPosted,
-          chip: dict.alertChipPosted,
-        };
+        return { title: dict.successTitlePosted, msg: dict.successMsgPosted };
     }
   })();
 
@@ -668,7 +651,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
         </div>
 
         <div className="header">
-          {currentScreen !== 'rating' ? (
+          {currentScreen !== 'rating' && !showSuccess ? (
             <button
               type="button"
               className="icon-btn"
@@ -1174,10 +1157,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
             {successCopy.title}
           </h2>
           <p className="success-msg">{successCopy.msg}</p>
-          <div className="alert-chip">
-            <span className="alert-chip-dot" aria-hidden="true" />
-            <span>{successCopy.chip}</span>
-          </div>
           <div className="success-cta">
             <button
               type="button"
