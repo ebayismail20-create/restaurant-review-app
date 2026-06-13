@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { format, i18n } from '../app/lib/dictionaries';
 import { isLang, isRating } from '../app/lib/types';
-import { DEMO_VENUE, PLATFORM_FALLBACK_URLS, createSessionId } from '../app/lib/venue';
+import {
+  DEMO_VENUE,
+  PLATFORM_FALLBACK_URLS,
+  createSessionId,
+  venueFromRow,
+  type VenueRow,
+} from '../app/lib/venue';
 
 describe('type guards', () => {
   it('isRating accepts exactly 1-5', () => {
@@ -83,5 +89,46 @@ describe('venue config', () => {
     const b = createSessionId();
     expect(a).not.toBe(b);
     expect(a).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  });
+});
+
+describe('venueFromRow', () => {
+  const row: VenueRow = {
+    brand_name: 'Cafe Aalto',
+    tagline: 'Bakery · Turku',
+    location_name: 'Cafe Aalto · Turku',
+    google_review_url: 'https://g.example/review',
+    tripadvisor_review_url: 'https://ta.example/review',
+    server_name: 'Eero',
+  };
+
+  it('maps a DB row + URL coordinates into a VenueContext', () => {
+    const v = venueFromRow(row, 'cafe-aalto', '5', 'tok123');
+    expect(v).toMatchObject({
+      tenantId: 'cafe-aalto',
+      brandName: 'Cafe Aalto',
+      brandTag: 'Bakery · Turku',
+      tableNumber: '5',
+      serverName: 'Eero',
+      tableToken: 'tok123',
+    });
+    expect(v.platformUrls.google).toBe('https://g.example/review');
+  });
+
+  it('falls back to platform home pages when a tenant URL is null', () => {
+    const v = venueFromRow(
+      { ...row, google_review_url: null, tripadvisor_review_url: null },
+      'cafe-aalto',
+      '5',
+      'tok',
+    );
+    expect(v.platformUrls.google).toBe(PLATFORM_FALLBACK_URLS.google);
+    expect(v.platformUrls.tripadvisor).toBe(PLATFORM_FALLBACK_URLS.tripadvisor);
+  });
+
+  it('tolerates a null tagline / server', () => {
+    const v = venueFromRow({ ...row, tagline: null, server_name: null }, 's', '1', 't');
+    expect(v.brandTag).toBe('');
+    expect(v.serverName).toBe('');
   });
 });

@@ -18,10 +18,6 @@ export interface Dict {
   langFiLabel: string;
   langSvLabel: string;
 
-  // Brand
-  brandName: string;
-  brandTag: string;
-
   // Template: {table}, {server}
   tableChip: string;
 
@@ -121,9 +117,6 @@ const en: Dict = {
   langFiLabel: 'Vaihda suomeksi',
   langSvLabel: 'Byt till svenska',
 
-  brandName: 'Bistro Nordic',
-  brandTag: 'Fine dining · Helsinki',
-
   tableChip: 'Table {table} · Server: {server}',
 
   step1of2: 'Step 1 of 2',
@@ -217,9 +210,6 @@ const fi: Dict = {
   langFiLabel: 'Vaihda suomeksi',
   langSvLabel: 'Byt till svenska',
 
-  brandName: 'Bistro Nordic',
-  brandTag: 'Fine dining · Helsinki',
-
   tableChip: 'Pöytä {table} · Tarjoilija: {server}',
 
   step1of2: 'Vaihe 1/2',
@@ -310,9 +300,6 @@ const sv: Dict = {
   langEnLabel: 'Switch to English',
   langFiLabel: 'Vaihda suomeksi',
   langSvLabel: 'Byt till svenska',
-
-  brandName: 'Bistro Nordic',
-  brandTag: 'Fine dining · Helsingfors',
 
   tableChip: 'Bord {table} · Servitör: {server}',
 

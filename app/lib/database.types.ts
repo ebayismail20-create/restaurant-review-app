@@ -157,8 +157,11 @@ export type Database = {
           google_review_url: string | null
           id: string
           location_name: string
+          manager_email: string | null
+          manager_name: string | null
           name: string
           slug: string
+          tagline: string | null
           tripadvisor_review_url: string | null
         }
         Insert: {
@@ -166,8 +169,11 @@ export type Database = {
           google_review_url?: string | null
           id?: string
           location_name: string
+          manager_email?: string | null
+          manager_name?: string | null
           name: string
           slug: string
+          tagline?: string | null
           tripadvisor_review_url?: string | null
         }
         Update: {
@@ -175,8 +181,11 @@ export type Database = {
           google_review_url?: string | null
           id?: string
           location_name?: string
+          manager_email?: string | null
+          manager_name?: string | null
           name?: string
           slug?: string
+          tagline?: string | null
           tripadvisor_review_url?: string | null
         }
         Relationships: []
@@ -186,6 +195,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_venue: {
+        Args: {
+          p_slug: string
+          p_table_label: string
+          p_token: string
+        }
+        Returns: {
+          brand_name: string
+          tagline: string
+          location_name: string
+          google_review_url: string
+          tripadvisor_review_url: string
+          server_name: string
+        }[]
+      }
       submit_review: {
         Args: {
           p_ip_hash: string

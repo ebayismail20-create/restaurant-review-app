@@ -3,13 +3,19 @@
 On-table QR feedback flow for restaurants. A guest scans the code at their
 table, rates the visit (1–5 stars), and is routed by outcome:
 
-- **5★** → public review prompts (Google / Tripadvisor / Facebook)
+- **5★** → public review prompts (Google / Tripadvisor)
 - **3–4★** → private "what could we improve" feedback to the manager
 - **1–2★** → urgent "what went wrong" flow, plus an anonymous
   contact-the-manager escape hatch
 
-Single-venue demo (Bistro Nordic · Helsinki) in EN / FI / SV. Multi-tenant
-routing (`/r/[slug]/[table]`) is planned — see `PHASE-2:` markers in the code.
+EN / FI / SV. Two ways in:
+
+- `/` — the single-venue demo (Bistro Nordic · Helsinki, via `DEMO_VENUE`).
+- `/r/[slug]/[table]?t=<token>` — **multi-tenant**. The QR printed for each
+  physical table encodes this URL with the table's unguessable token. The
+  venue (brand, tagline, platform URLs, server) is resolved server-side via
+  the token-gated `get_venue` function; a wrong/guessed URL 404s. One
+  deployment serves every tenant.
 
 ## Stack
 
@@ -101,6 +107,6 @@ tests/                  vitest suites (lib units + review-flow integration)
 - `DEMO_VENUE.platformUrls` / the seeded tenant rows are placeholders; clicks
   fall back to platform home pages and log a config error. Set real per-venue
   URLs before launch.
-- Multi-tenant routing (`/r/[slug]/[table]`) not built — single demo venue
-  via `DEMO_VENUE`, token supplied through `NEXT_PUBLIC_DEMO_TABLE_TOKEN`.
 - No production telemetry yet (Sentry planned).
+- No operator/manager dashboard yet — submissions are queryable in the DB,
+  and urgent ones email the manager, but there's no web UI to triage them.

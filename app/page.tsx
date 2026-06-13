@@ -736,8 +736,8 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
         >
           <div className="venue-header">
             <div className="venue-brand">
-              <span className="venue-brand-name">{dict.brandName}</span>
-              <span className="venue-brand-tag">{dict.brandTag}</span>
+              <span className="venue-brand-name">{venue.brandName}</span>
+              <span className="venue-brand-tag">{venue.brandTag}</span>
             </div>
             <div className="table-chip">
               <svg

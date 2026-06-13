@@ -1,10 +1,13 @@
-// Venue context. In Phase 1.2 this will be populated from a dynamic route
-// /r/[slug]/[table]/[server?] and fetched server-side. For now it's a typed
-// default that we can trace and replace.
+// Venue context. Populated server-side from the dynamic route
+// /r/[slug]/[table]?t=token (see app/r/[slug]/[table]/page.tsx), or the
+// DEMO_VENUE default on the bare "/" route. Everything the guest UI shows
+// about the venue comes from here, so the same component serves any tenant.
 
 export interface VenueContext {
   tenantId: string;       // stable slug used for DB lookups (matches tenants.slug)
-  locationName: string;   // display name
+  brandName: string;      // venue name shown in the header (e.g. "Bistro Nordic")
+  brandTag: string;       // tagline under the name (e.g. "Fine dining · Helsinki")
+  locationName: string;   // longer display name, used in submission context
   tableNumber: string;    // display label for the table (matches tables.label)
   serverName: string;     // display label for the server
   // Per-table capability token. In production this rides in the QR URL and
@@ -12,10 +15,45 @@ export interface VenueContext {
   // hold it. It is NOT a server secret — it only authorizes posting AS this
   // one table, and is revocable/rotatable per table.
   tableToken: string;
-  // Brand-specific config will live here in Phase 1.2 (review links, colors, etc.)
   platformUrls: {
     google: string;       // full Google "write a review" URL for this venue
     tripadvisor: string;  // Tripadvisor write-review URL
+  };
+}
+
+/** Shape returned by the get_venue DB function (one row when token matches). */
+export interface VenueRow {
+  brand_name: string;
+  tagline: string | null;
+  location_name: string;
+  google_review_url: string | null;
+  tripadvisor_review_url: string | null;
+  server_name: string | null;
+}
+
+/**
+ * Map a get_venue row + the URL coordinates into a VenueContext. The slug,
+ * table label, and token come from the request (not the DB row), since they
+ * are the caller's coordinates; everything else is venue data.
+ */
+export function venueFromRow(
+  row: VenueRow,
+  slug: string,
+  tableLabel: string,
+  token: string,
+): VenueContext {
+  return {
+    tenantId: slug,
+    brandName: row.brand_name,
+    brandTag: row.tagline ?? '',
+    locationName: row.location_name,
+    tableNumber: tableLabel,
+    serverName: row.server_name ?? '',
+    tableToken: token,
+    platformUrls: {
+      google: row.google_review_url ?? PLATFORM_FALLBACK_URLS.google,
+      tripadvisor: row.tripadvisor_review_url ?? PLATFORM_FALLBACK_URLS.tripadvisor,
+    },
   };
 }
 
@@ -30,10 +68,12 @@ export const PLATFORM_FALLBACK_URLS: VenueContext['platformUrls'] = {
   tripadvisor: 'https://www.tripadvisor.com',
 };
 
-// TODO(phase-1.2): remove this default when dynamic routing lands.
-// Right now it's the demo-only Bistro Nordic config so existing screens render.
+// Default venue for the bare "/" route — the single-venue demo. Real tenants
+// arrive through /r/[slug]/[table] and never touch this.
 export const DEMO_VENUE: VenueContext = {
   tenantId: 'bistro-nordic',
+  brandName: 'Bistro Nordic',
+  brandTag: 'Fine dining · Helsinki',
   locationName: 'Bistro Nordic · Helsinki',
   tableNumber: '12',
   serverName: 'Anna',
