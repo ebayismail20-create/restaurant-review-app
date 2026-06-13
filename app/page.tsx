@@ -123,7 +123,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   const [selectedTags, setSelectedTags] = useState<ReadonlySet<TagKey>>(new Set());
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [successKind, setSuccessKind] = useState<SuccessKind>('posted');
-  const [time, setTime] = useState<string>('9:41');
   const [contactMessage, setContactMessage] = useState<string>('');
   const [commentImprove, setCommentImprove] = useState<string>('');
   const [commentSorry, setCommentSorry] = useState<string>('');
@@ -159,19 +158,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   const dict = i18n[currentLang];
 
   // ---- Effects ----
-
-  // Tick the faux status-bar clock. Not a user-visible spec, just a polish detail.
-  useEffect(() => {
-    const syncTime = () => {
-      const d = new Date();
-      setTime(
-        `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
-      );
-    };
-    syncTime();
-    const interval = setInterval(syncTime, 30_000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Keep <html lang> in sync with the chosen language. Screen readers and
   // Safari's translate offer rely on this.
@@ -627,27 +613,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   return (
     <div className="device-frame">
       <div id="app" className={`app ${themeClass}`}>
-        <div className="notch" aria-hidden="true" />
-
-        <div className="status-bar" aria-hidden="true">
-          <span>{time}</span>
-          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor">
-              <rect x="0" y="6" width="3" height="5" rx="0.5" />
-              <rect x="4" y="4" width="3" height="7" rx="0.5" />
-              <rect x="8" y="2" width="3" height="9" rx="0.5" />
-              <rect x="12" y="0" width="3" height="11" rx="0.5" />
-            </svg>
-            <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
-              <path d="M7.5 0C4 0 1 1.5 0 3l1.5 1.5C2.5 3.5 4.7 2.5 7.5 2.5s5 1 6 2L15 3C14 1.5 11 0 7.5 0zM7.5 4C5.5 4 3.5 4.7 2.5 5.7L4 7.2c.7-.7 2-1.2 3.5-1.2s2.8.5 3.5 1.2l1.5-1.5C11.5 4.7 9.5 4 7.5 4zM7.5 8c-.7 0-1.4.3-2 .9L7.5 11l2-2.1c-.6-.6-1.3-.9-2-.9z" />
-            </svg>
-            <svg width="26" height="11" viewBox="0 0 26 11" fill="none">
-              <rect x="0.5" y="0.5" width="22" height="10" rx="2.5" stroke="currentColor" opacity="0.5" />
-              <rect x="2" y="2" width="19" height="7" rx="1.5" fill="currentColor" />
-              <rect x="23" y="3.5" width="2" height="4" rx="1" fill="currentColor" opacity="0.5" />
-            </svg>
-          </div>
-        </div>
 
         {/* SR-only polite live region for tag-toggle announcements. */}
         <div className="sr-only" aria-live="polite" aria-atomic="true">
