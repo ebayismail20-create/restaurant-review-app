@@ -19,6 +19,7 @@ export type Database = {
         Row: {
           channel: string
           created_at: string
+          destination: string | null
           error: string | null
           id: string
           sent_at: string | null
@@ -28,6 +29,7 @@ export type Database = {
         Insert: {
           channel: string
           created_at?: string
+          destination?: string | null
           error?: string | null
           id?: string
           sent_at?: string | null
@@ -37,6 +39,7 @@ export type Database = {
         Update: {
           channel?: string
           created_at?: string
+          destination?: string | null
           error?: string | null
           id?: string
           sent_at?: string | null
@@ -49,6 +52,44 @@ export type Database = {
             columns: ["submission_id"]
             isOneToOne: false
             referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_notification_channels: {
+        Row: {
+          created_at: string
+          destination: string
+          enabled: boolean
+          id: string
+          kind: string
+          label: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          enabled?: boolean
+          id?: string
+          kind: string
+          label?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          label?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_notification_channels_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

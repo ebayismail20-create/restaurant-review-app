@@ -31,7 +31,8 @@ as $$
   delete from public.submissions
    where created_at < now() - interval '365 days';
 $$;
-revoke all on function public.purge_old_feedback() from public;
+-- Not reachable via the public API — only the cron job (superuser) runs it.
+revoke all on function public.purge_old_feedback() from public, anon, authenticated;
 
 -- Run daily at 03:17 UTC (quiet hours). cron.schedule upserts by name.
 select cron.schedule('purge-old-feedback', '17 3 * * *', $$ select public.purge_old_feedback(); $$);

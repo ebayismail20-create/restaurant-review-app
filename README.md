@@ -66,27 +66,42 @@ Schema lives in the Supabase project (`tenants`, `tables`, `submissions`,
 `notifications`) and is version-controlled in `supabase/migrations/`.
 Regenerate `app/lib/database.types.ts` after schema changes.
 
-### Manager alerts
+### Manager alerts (multi-channel)
+
+Each venue's owner configures where alerts go (in the dashboard app):
+rows in `tenant_notification_channels` — any mix of **email**, **SMS**, and
+**WhatsApp** destinations. "Alert the whole team" = add several recipients
+(the WhatsApp Business API can't post to a group chat, so multiple numbers is
+the supported model).
 
 Manager-facing submissions (1–2★ urgent, 3–4★ private, anonymous messages)
-enqueue a `notifications` row **inside the same transaction** as the
-submission — if feedback saves, the alert is guaranteed queued. The
-`notify-manager` Edge Function (`supabase/functions/notify-manager`) does the
-send: it runs with the service-role key Supabase injects, so that privilege
-never enters the Next app. The API route invokes it server-side after a
-manager-facing submission; failures leave the row `pending`/`failed` and
-never affect the guest's confirmation.
+enqueue **one `notifications` row per enabled channel, inside the same
+transaction** as the submission — if feedback saves, the alerts are guaranteed
+queued. The `notify-manager` Edge Function dispatches each pending row by its
+channel (email → Resend, SMS/WhatsApp → Twilio) and records sent/failed per
+channel. It runs with the service-role key Supabase injects, so that privilege
+never enters the Next app. The API route invokes it after a manager-facing
+submission; failures leave that channel's row `pending`/`failed` and never
+affect the guest's confirmation.
 
-To turn on real email delivery, set two secrets on the Edge Function (no app
-redeploy needed):
+Each channel works independently — configure only the providers you use, as
+Edge Function secrets (no app redeploy):
 
 ```bash
-supabase secrets set RESEND_API_KEY=re_xxx        # required
-supabase secrets set NOTIFY_FROM="Loop <reviews@yourdomain>"  # optional; defaults to Resend onboarding
+# email
+supabase secrets set RESEND_API_KEY=re_xxx
+supabase secrets set NOTIFY_FROM="Loop <reviews@yourdomain>"   # optional
+
+# SMS + WhatsApp (Twilio)
+supabase secrets set TWILIO_ACCOUNT_SID=AC_xxx
+supabase secrets set TWILIO_AUTH_TOKEN=xxx
+supabase secrets set TWILIO_SMS_FROM=+1xxxxxxxxxx
+supabase secrets set TWILIO_WHATSAPP_FROM="whatsapp:+14155238886"
 ```
 
-and set each tenant's `manager_email`. Until then the pipeline runs and
-records `failed: no_email_provider_configured` so it stays observable.
+Until a channel's provider is configured it records `failed: no_<kind>_provider`,
+so the pipeline stays fully observable. The dashboard's channel-management UI
+lives in the separate dashboard app; the schema + delivery here are ready for it.
 
 ## Develop
 
