@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 import { after, NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { captureException } from '../../lib/sentry';
 import { reviewRequestSchema } from '../../lib/submission-schema';
 import { getSupabase } from '../../lib/supabase';
 
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
     supabase = getSupabase();
   } catch (e) {
     console.error('[api/submissions]', (e as Error).message);
+    captureException(e, { tags: { stage: 'supabase_init' } });
     return NextResponse.json({ error: 'server_error' }, { status: 500 });
   }
 
@@ -96,9 +98,14 @@ export async function POST(request: NextRequest) {
     if (code && FORBIDDEN_DB_ERRORS.has(code)) {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
-    // Unknown DB/transport failure — log server-side (Sentry in Phase 5),
-    // return an opaque 500 so internals never reach the guest.
+    // Unknown DB/transport failure — report it and return an opaque 500 so
+    // internals never reach the guest. This is the "failed submission" signal
+    // that matters most operationally.
     console.error('[api/submissions] submit_review failed:', error.message);
+    captureException(new Error(error.message), {
+      tags: { stage: 'submit_review', kind: req.kind },
+      extra: { code: error.code, details: error.details },
+    });
     return NextResponse.json({ error: 'server_error' }, { status: 500 });
   }
 

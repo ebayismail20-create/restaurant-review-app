@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { captureException } from './lib/sentry';
+
 /**
  * Segment-level error boundary. Rendered when any descendant in the route
  * tree throws during render or in an effect. The root layout still renders
@@ -84,7 +86,7 @@ export default function Error({
     if (process.env.NODE_ENV !== 'production') {
       console.error('[app/error]', error);
     }
-    // PHASE-5: Sentry.captureException(error, { fingerprint: [error.digest] })
+    captureException(error, { tags: { boundary: 'segment' }, extra: { digest: error.digest } });
   }, [error]);
 
   const t = ERROR_DICT[lang];

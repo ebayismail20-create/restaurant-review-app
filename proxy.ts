@@ -25,6 +25,19 @@ import type { NextRequest } from 'next/server';
 const SCRIPT_SELF = "'self'";
 const NONE = "'none'";
 
+// Sentry ingest origin (from the public DSN), added to connect-src only when
+// error monitoring is configured. Guest CSP stays tight ('self') otherwise.
+const SENTRY_ORIGIN = (() => {
+  const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+  if (!dsn) return null;
+  try {
+    const u = new URL(dsn);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return null;
+  }
+})();
+
 function buildCsp(nonce: string, isDev: boolean): string {
   const directives: Record<string, readonly string[]> = {
     // Default fallback for any directive we don't explicitly set.
@@ -68,9 +81,14 @@ function buildCsp(nonce: string, isDev: boolean): string {
 
     // Guest submissions POST to our own /api/submissions (same-origin), so
     // 'self' covers everything — the browser never calls Supabase directly;
-    // the API route does, server-side. ws:/wss: are for Next's HMR socket
-    // in dev.
-    'connect-src': [SCRIPT_SELF, ...(isDev ? ['ws:', 'wss:'] : [])],
+    // the API route does, server-side. The Sentry origin is added only when
+    // error monitoring is configured (client-side captures POST to it).
+    // ws:/wss: are for Next's HMR socket in dev.
+    'connect-src': [
+      SCRIPT_SELF,
+      ...(SENTRY_ORIGIN ? [SENTRY_ORIGIN] : []),
+      ...(isDev ? ['ws:', 'wss:'] : []),
+    ],
 
     // Hard locks. We never iframe, never get iframed, never use plugins.
     'frame-src': [NONE],

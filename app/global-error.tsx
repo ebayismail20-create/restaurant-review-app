@@ -32,9 +32,39 @@ export default function GlobalError({
     if (process.env.NODE_ENV !== 'production') {
       console.error('[app/global-error]', error);
     }
-    // PHASE-5: Sentry capture with severity=fatal — this layer of failure
-    // means the app was never going to recover on its own and a human
-    // should see it.
+    // Catastrophic layer: report to Sentry INLINE, with no app/lib import —
+    // the whole point of global-error is to stand even if those modules are
+    // what broke. Mirrors lib/sentry's envelope, kept self-contained on
+    // purpose. No-op when no DSN.
+    try {
+      const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+      if (dsn) {
+        const u = new URL(dsn);
+        const id = crypto.randomUUID().replace(/-/g, '');
+        const url = `${u.protocol}//${u.host}/api/${u.pathname.replace(/^\//, '')}/envelope/?sentry_key=${u.username}&sentry_version=7`;
+        const body =
+          JSON.stringify({ event_id: id, sent_at: new Date().toISOString() }) + '\n' +
+          JSON.stringify({ type: 'event' }) + '\n' +
+          JSON.stringify({
+            event_id: id,
+            timestamp: Date.now() / 1000,
+            platform: 'javascript',
+            level: 'fatal',
+            environment: process.env.NODE_ENV ?? 'production',
+            exception: { values: [{ type: error.name || 'Error', value: error.message }] },
+            tags: { runtime: 'browser', boundary: 'global' },
+            extra: { stack: error.stack ?? null, digest: error.digest ?? null },
+          });
+        void fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-sentry-envelope' },
+          body,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {
+      /* never let the catastrophic-fallback reporting itself throw */
+    }
   }, [error]);
 
   return (

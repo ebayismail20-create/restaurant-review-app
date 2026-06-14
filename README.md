@@ -111,10 +111,28 @@ app/lib/types.ts        shared contracts incl. ReviewRequest (the API contract)
 app/lib/dictionaries.ts typed EN/FI/SV copy — every key required in every language
 app/lib/venue.ts        venue context; DEMO_VENUE powers the bare "/" demo
 app/components/         presentational pieces (tag icons)
+app/lib/sentry.ts       dependency-free Sentry capture (gated on DSN)
+instrumentation.ts      server onRequestError → Sentry
 proxy.ts                per-request CSP nonce + security headers
 supabase/               migrations + the notify-manager Edge Function
 tests/                  vitest suites (lib units + review-flow integration)
 ```
+
+## Error monitoring
+
+Errors report to Sentry via its stable ingest API directly — no heavy SDK,
+no Turbopack build-plugin conflict, no guest-bundle bloat. Coverage:
+
+- `instrumentation.ts` `onRequestError` — uncaught server errors (RSC, route
+  handlers, actions), both runtimes.
+- `app/api/submissions/route.ts` — explicit capture on a failed submission
+  (the signal that matters most) and on Supabase init failure.
+- `app/error.tsx` / `app/global-error.tsx` — client render crashes (the
+  global boundary captures inline, with no `app/lib` import, by design).
+
+Set `NEXT_PUBLIC_SENTRY_DSN` to enable (a DSN is public by design). Unset =
+a complete no-op: no network, no `connect-src` change, no bundle cost. When
+set, the proxy adds the Sentry ingest origin to `connect-src` automatically.
 
 ## Known gaps (deliberate, tracked)
 
@@ -122,7 +140,6 @@ tests/                  vitest suites (lib units + review-flow integration)
   status, but no email actually sends until `RESEND_API_KEY` is set on the
   Edge Function (see Manager alerts). Success copy avoids promising an SLA
   until then.
-- `DEMO_VENUE.platformUrls` / the seeded tenant rows are placeholders; clicks
-  fall back to platform home pages and log a config error. Set real per-venue
+- `DEMO_VENUE` / the seeded tenant rows use placeholder review URLs; clicks
+  fall back to platform home pages and warn (dev only). Set real per-venue
   URLs before launch.
-- No production telemetry yet (Sentry planned).
