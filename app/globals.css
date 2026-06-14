@@ -182,13 +182,66 @@ body {
   transform: translateY(-8px);
   pointer-events: none;
 }
-.venue-brand { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-/* Owner branding (set in the dashboard): a logo image if provided, else a
-   monogram tile in the venue's brand color. Absent both → just the name. */
-.venue-logo { height: clamp(40px, 12cqi, 52px); width: auto; max-width: 70%; object-fit: contain; margin-bottom: 6px; }
-.venue-monogram { width: clamp(44px, 13cqi, 52px); height: clamp(44px, 13cqi, 52px); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-serif); font-size: clamp(24px, 7cqi, 28px); font-weight: 600; line-height: 1; margin-bottom: 6px; box-shadow: 0 8px 20px -8px rgba(42,20,24,0.35); }
-.venue-brand-name { font-family: var(--font-serif); font-size: clamp(21px, 5.8cqi, 24px); font-weight: 500; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
-.venue-brand-tag { font-size: 9px; font-weight: 500; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; opacity: 0.85; }
+.venue-brand { display: flex; flex-direction: column; align-items: center; }
+
+/* Owner branding (set in the dashboard, read from the DB per venue): a logo
+   image if provided, else a monogram crest in the venue's brand color.
+   Designed white-label — must look intentional for ANY restaurant. */
+
+/* Logo sits in a soft white "plate" with a gold hairline, so logos of any
+   shape / background read as deliberate against the cream surface. */
+.venue-logo {
+  max-height: clamp(40px, 12cqi, 52px);
+  max-width: min(70%, 220px);
+  width: auto;
+  object-fit: contain;
+  padding: 12px 18px;
+  background: #fff;
+  border: 1px solid rgba(201, 169, 97, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 14px 30px -16px rgba(42, 20, 24, 0.32), 0 2px 6px -3px rgba(42, 20, 24, 0.14);
+  margin-bottom: 16px;
+}
+
+/* Monogram crest: brand-color tile ringed by a gold hairline (the signature
+   flourish), floating on a soft shadow. */
+.venue-monogram {
+  position: relative;
+  width: clamp(52px, 15cqi, 62px);
+  height: clamp(52px, 15cqi, 62px);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 8cqi, 34px);
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 16px;
+  box-shadow: 0 14px 30px -12px rgba(42, 20, 24, 0.42);
+}
+.venue-monogram::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 1.5px solid var(--accent);
+  border-radius: 23px;
+  opacity: 0.55;
+}
+
+.venue-brand-name { font-family: var(--font-serif); font-size: clamp(23px, 6.4cqi, 27px); font-weight: 600; color: var(--text); letter-spacing: -0.6px; line-height: 1.05; text-align: center; }
+
+/* Editorial flourish: a slim gold rule that fades at both ends, between the
+   name and the tagline. */
+.venue-flourish {
+  width: 34px;
+  height: 1px;
+  margin: 10px 0 9px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.7;
+}
+.venue-brand-tag { font-size: 10px; font-weight: 600; letter-spacing: 3.5px; color: var(--accent); text-transform: uppercase; opacity: 0.9; text-align: center; }
 
 /* Multi-line titles use \n in the dictionary — no HTML. */
 .rating-title, .reasons-title, .platforms-title, .success-title, .contact-title { white-space: pre-line; }

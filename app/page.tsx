@@ -738,7 +738,12 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                 </span>
               ) : null}
               <span className="venue-brand-name">{venue.brandName}</span>
-              <span className="venue-brand-tag">{venue.brandTag}</span>
+              {venue.brandTag ? (
+                <>
+                  <span className="venue-flourish" aria-hidden="true" />
+                  <span className="venue-brand-tag">{venue.brandTag}</span>
+                </>
+              ) : null}
             </div>
           </div>
           <div className={`rating-content ${currentRating ? 'rated' : ''}`} id="ratingContent">

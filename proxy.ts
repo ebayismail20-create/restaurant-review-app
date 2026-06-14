@@ -72,9 +72,13 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // them while keeping element styles nonce-locked is the right trade.
     'style-src-attr': ["'unsafe-inline'"],
 
-    // Inline tag-icon and brand SVGs are encoded as data: URIs.
+    // Inline tag-icon and brand SVGs are data: URIs. https: is allowed so
+    // owner-uploaded venue logos render no matter where they're hosted
+    // (Supabase Storage, the venue's own CDN, etc.) — this is a white-label
+    // app, so logo origins aren't known ahead of time. Images can't execute
+    // scripts, so widening img-src to https: is low-risk.
     // blob: only allowed in dev for HMR error overlay screenshots.
-    'img-src': [SCRIPT_SELF, 'data:', ...(isDev ? ['blob:'] : [])],
+    'img-src': [SCRIPT_SELF, 'data:', 'https:', ...(isDev ? ['blob:'] : [])],
 
     // next/font self-hosts every font file under /_next/static/media/.
     'font-src': [SCRIPT_SELF],
