@@ -622,11 +622,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
    */
   const isScreenInert = (screen: Screen) => !isActive(screen) || showSuccess;
 
-  const tableChip = format(dict.tableChip, {
-    table: venue.tableNumber,
-    server: venue.serverName,
-  });
-
   // Live-region copy for tag toggles.
   const tagsAnnouncement =
     selectedTags.size === 0
@@ -744,21 +739,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               ) : null}
               <span className="venue-brand-name">{venue.brandName}</span>
               <span className="venue-brand-tag">{venue.brandTag}</span>
-            </div>
-            <div className="table-chip">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <path d="M3 7h18M5 7v13M19 7v13M3 20h18M8 11h8M8 15h8" />
-              </svg>
-              <span>{tableChip}</span>
             </div>
           </div>
           <div className={`rating-content ${currentRating ? 'rated' : ''}`} id="ratingContent">

@@ -189,8 +189,6 @@ body {
 .venue-monogram { width: clamp(44px, 13cqi, 52px); height: clamp(44px, 13cqi, 52px); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-serif); font-size: clamp(24px, 7cqi, 28px); font-weight: 600; line-height: 1; margin-bottom: 6px; box-shadow: 0 8px 20px -8px rgba(42,20,24,0.35); }
 .venue-brand-name { font-family: var(--font-serif); font-size: clamp(21px, 5.8cqi, 24px); font-weight: 500; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
 .venue-brand-tag { font-size: 9px; font-weight: 500; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; opacity: 0.85; }
-.table-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--bg-card); color: var(--text); padding: 8px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 500; box-shadow: 0 4px 14px -4px rgba(42,20,24,0.12); letter-spacing: 0.2px; }
-.table-chip svg { color: var(--accent); }
 
 /* Multi-line titles use \n in the dictionary — no HTML. */
 .rating-title, .reasons-title, .platforms-title, .success-title, .contact-title { white-space: pre-line; }
