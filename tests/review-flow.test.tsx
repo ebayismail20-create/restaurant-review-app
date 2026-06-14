@@ -141,6 +141,51 @@ describe('improve flow (3-4 stars)', () => {
   });
 });
 
+describe('offline resilience (submission retry)', () => {
+  const ok201 = () =>
+    new Response(JSON.stringify({ id: 'x' }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  it('retries a transient network failure, then succeeds', async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    fetchMock.mockReset();
+    fetchMock.mockRejectedValueOnce(new Error('network blip')).mockResolvedValue(ok201());
+
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+    await user.click(within(getScreen('screenImprove')).getByRole('button', { name: 'Send to manager' }));
+
+    await waitFor(
+      () => expect(screen.getByText('Thank you for telling us')).toBeInTheDocument(),
+      { timeout: 3000 },
+    );
+    expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(2); // retried
+  });
+
+  it('does NOT retry a permanent 4xx, and surfaces an error', async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+    const improve = within(getScreen('screenImprove'));
+    await user.click(improve.getByRole('button', { name: 'Send to manager' }));
+
+    await waitFor(() => expect(improve.getByText(/Couldn.t send/)).toBeInTheDocument());
+    expect(fetchMock).toHaveBeenCalledTimes(1); // no retry on 4xx
+  });
+});
+
 describe('platforms flow (5 stars)', () => {
   it('skip ("Maybe next time") shows the honest rated copy, not a posted claim', async () => {
     const user = userEvent.setup();

@@ -66,6 +66,7 @@ export interface Dict {
   // Comment field
   commentLabel: string; // sr-only label
   commentPh: string;
+  commentPrivacy: string; // GDPR microcopy under the comment box
   tagsRequired: string; // Sorry-screen validation: pick a tag before Send.
 
   // Send / CTA
@@ -152,6 +153,7 @@ const en: Dict = {
 
   commentLabel: 'Your comment',
   commentPh: 'Tell us more (optional)…',
+  commentPrivacy: 'Private to the venue · auto-deleted after 90 days',
   tagsRequired: 'Please pick what went wrong, or message the manager privately.',
 
   sendPrivate: 'Send to manager',
@@ -185,7 +187,7 @@ const en: Dict = {
   orLabel: 'Or',
   anonBadge: 'NO NAME, NO EMAIL',
   anonPrivacyNote:
-    'We don’t ask for your name or email. We do log the table and the time so the manager can follow up properly.',
+    'We don’t ask for your name or email. We log the table and the time so the manager can follow up — and messages are auto-deleted after 90 days.',
   contactTitle: 'Message the\nmanager directly',
   contactSub: 'Skip the comment card. Tell the manager exactly what they need to know.',
   contactLabel: 'Your message to the manager',
@@ -242,6 +244,7 @@ const fi: Dict = {
 
   commentLabel: 'Kommenttisi',
   commentPh: 'Kerro lisää (valinnainen)…',
+  commentPrivacy: 'Vain ravintolalle · poistetaan 90 päivän jälkeen',
   tagsRequired: 'Valitse mikä meni pieleen tai lähetä viesti päällikölle.',
 
   sendPrivate: 'Lähetä päällikölle',
@@ -270,7 +273,7 @@ const fi: Dict = {
   orLabel: 'Tai',
   anonBadge: 'EI NIMEÄ, EI SÄHKÖPOSTIA',
   anonPrivacyNote:
-    'Emme kysy nimeäsi tai sähköpostiasi. Tallennamme pöydän ja kellonajan, jotta päällikkö voi seurata palautteen kunnolla.',
+    'Emme kysy nimeäsi tai sähköpostiasi. Tallennamme pöydän ja kellonajan, jotta päällikkö voi seurata palautetta — viestit poistetaan 90 päivän kuluttua.',
   contactTitle: 'Viesti suoraan\npäällikölle',
   contactSub: 'Ohita palautelomake. Kerro päällikölle juuri se, mitä hänen tulee tietää.',
   contactLabel: 'Viestisi päällikölle',
@@ -327,6 +330,7 @@ const sv: Dict = {
 
   commentLabel: 'Din kommentar',
   commentPh: 'Berätta mer (valfritt)…',
+  commentPrivacy: 'Privat för restaurangen · raderas efter 90 dagar',
   tagsRequired: 'Välj vad som gick fel, eller skicka ett privat meddelande.',
 
   sendPrivate: 'Skicka till chefen',
@@ -355,7 +359,7 @@ const sv: Dict = {
   orLabel: 'Eller',
   anonBadge: 'INGET NAMN, INGEN E-POST',
   anonPrivacyNote:
-    'Vi frågar inte efter ditt namn eller din e-post. Vi loggar bordet och tiden så att chefen kan följa upp ordentligt.',
+    'Vi frågar inte efter ditt namn eller din e-post. Vi loggar bordet och tiden så att chefen kan följa upp — meddelanden raderas efter 90 dagar.',
   contactTitle: 'Skicka meddelande\ndirekt till chefen',
   contactSub: 'Hoppa över kommentarsformuläret. Berätta för chefen exakt vad hen behöver veta.',
   contactLabel: 'Ditt meddelande till chefen',

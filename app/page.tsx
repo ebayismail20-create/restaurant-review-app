@@ -462,20 +462,54 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   );
 
   /**
-   * Persist the submission via POST /api/submissions. Throws on any
-   * non-2xx so callers can surface dict.sendError and let the guest retry.
-   * The server hashes the IP, verifies the table token, derives priority,
-   * and inserts — see app/api/submissions/route.ts.
+   * Persist the submission via POST /api/submissions, resilient to flaky
+   * restaurant Wi-Fi. Transient failures (the fetch throwing, or a 5xx) are
+   * retried up to 3 attempts with backoff — smoothing over a network blip
+   * while the guest is still on the screen. Permanent failures (4xx: bad
+   * token, validation; 429: rate-limited) are NOT retried — they're surfaced
+   * immediately so the guest isn't left waiting on something that can't
+   * succeed. After the attempts are exhausted it throws, and the caller
+   * shows dict.sendError with a manual retry.
+   *
+   * Chosen over the Service Worker Background Sync API on purpose: that's
+   * Chromium-only (silently a no-op on iOS Safari, where a large share of
+   * restaurant guests are), and the real failure mode here is a transient
+   * blip while the guest is present — which in-place retry handles for
+   * everyone.
    */
   const notifyManager = useCallback(async (req: ReviewRequest): Promise<void> => {
-    const res = await fetch('/api/submissions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    });
-    if (!res.ok) {
-      throw new Error(`submission failed: ${res.status}`);
+    const MAX_ATTEMPTS = 3;
+    const BACKOFF_MS = [600, 1500]; // delay before attempt 2, then attempt 3
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      if (attempt > 0) {
+        await new Promise((r) => window.setTimeout(r, BACKOFF_MS[attempt - 1]));
+      }
+      try {
+        const res = await fetch('/api/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(req),
+        });
+        if (res.ok) return;
+        // 4xx (incl. 403 bad token / 400 invalid / 429 rate-limited) are
+        // permanent for this request — don't waste the guest's time retrying.
+        if (res.status < 500) {
+          throw new Error(`submission rejected: ${res.status}`);
+        }
+        // 5xx → transient, fall through to retry.
+        lastError = new Error(`submission failed: ${res.status}`);
+      } catch (e) {
+        // A thrown 4xx above must not be retried; re-throw it.
+        if (e instanceof Error && e.message.startsWith('submission rejected:')) {
+          throw e;
+        }
+        // Network error (offline / blip) — retry.
+        lastError = e instanceof Error ? e : new Error('network error');
+      }
     }
+    throw lastError ?? new Error('submission failed');
   }, []);
 
   const showSuccessScreen = useCallback((kind: SuccessKind) => {
@@ -884,6 +918,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                 <span />
                 <span aria-hidden="true">{`${commentImprove.length}/${MAX_COMMENT}`}</span>
               </div>
+              <p className="comment-privacy">{dict.commentPrivacy}</p>
             </div>
           </div>
           {sendError ? (
@@ -994,6 +1029,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                 <span />
                 <span aria-hidden="true">{`${commentSorry.length}/${MAX_COMMENT}`}</span>
               </div>
+              <p className="comment-privacy">{dict.commentPrivacy}</p>
             </div>
           </div>
           {sendError ? (
