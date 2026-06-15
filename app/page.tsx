@@ -731,18 +731,17 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   })();
 
   /**
-   * Secondary "share publicly too" link on the success screen. Per the owner's
-   * choice it is offered ONLY to 4★ guests (the happy-but-quiet middle), not to
-   * 1-3★. 5★ get the platforms screen directly.
-   *
-   * NOTE: gating the public option by score like this is "review gating"
-   * (against Google's review policy + the FTC 2024 review-suppression rule),
-   * kept here at the owner's explicit request. To make it available to every
-   * guest (compliant), broaden to:
-   *   (successKind === 'private' || successKind === 'alerted')
+   * Compliance: the public-review option must be reachable by EVERY guest, not
+   * just high scorers — suppressing it for low ratings is "review gating",
+   * which violates Google's review policy + the FTC 2024 review-suppression
+   * rule. So after any private (3-4★) or alerted (1-2★ / anonymous) submission
+   * we offer "share publicly", provided the venue configured a platform. Not on
+   * 'posted' (already did) or 'rated' (already saw + declined the platforms
+   * screen). It stays a small, quiet link so the primary Done leads — available
+   * to all, but never pushed.
    */
   const showSharePublic =
-    successKind === 'private' && currentRating === 4 && venue.platforms.length > 0;
+    (successKind === 'private' || successKind === 'alerted') && venue.platforms.length > 0;
 
   // ---- Render ----
 
