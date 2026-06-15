@@ -900,6 +900,10 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               })}
             </div>
 
+            {/* Invitation shown only before a rating is picked (CSS hides it on
+                .rated). aria-hidden: the radiogroup already announces itself. */}
+            <p className="rating-hint" aria-hidden="true">{dict.ratingHint}</p>
+
             <div className="rating-actions">
               <button
                 type="button"

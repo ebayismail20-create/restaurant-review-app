@@ -280,18 +280,44 @@ body {
 
 .rating-word { font-family: var(--font-serif); font-size: clamp(30px, 9.1cqi, 38px); font-weight: 500; color: var(--text); letter-spacing: -1px; margin-bottom: 18px; transition: all .35s; min-height: clamp(38px, 11cqi, 46px); }
 
-.stars { display: flex; gap: clamp(4px, 2cqi, 8px); margin-bottom: clamp(18px, 5.8cqi, 24px); }
-/* Unselected stars sit at 0.7 opacity (was 0.55) so they read as waiting
-   controls, not faint decoration — the artifact value washed out on the
-   warmer theme backgrounds. */
-.star { width: var(--touch); height: var(--touch); cursor: pointer; color: var(--text-soft); transition: color .25s var(--ease-back), transform .25s var(--ease-back), opacity .25s var(--ease-back); display: flex; align-items: center; justify-content: center; opacity: 0.7; position: relative; background: transparent; border: none; padding: 0; }
-.star svg { width: 100%; height: 100%; position: relative; z-index: 2; }
-.star svg path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; transition: all .25s; }
-.star.active { color: var(--accent); transform: scale(1.08); opacity: 1; }
-.star.active svg path { fill: currentColor; stroke: currentColor; stroke-width: 1.2; }
-@media (hover: hover) {
-  .star:hover { transform: scale(1.12); opacity: 1; }
+.stars { display: flex; gap: clamp(6px, 2.6cqi, 11px); margin-bottom: clamp(18px, 5.8cqi, 24px); }
+/* The stars are the hero of the entry screen, so they read as gold the moment
+   you arrive: a warm gold OUTLINE when empty, a solid gold star with a soft
+   glow when filled (the App Store / Yelp "fill-up" metaphor everyone knows).
+   Bigger than a bare touch target so they invite the tap rather than hide. */
+.star {
+  width: clamp(50px, 14.5cqi, 60px);
+  height: clamp(50px, 14.5cqi, 60px);
+  cursor: pointer;
+  color: var(--accent);
+  opacity: 0.82;
+  transition: color .25s var(--ease-back), transform .25s var(--ease-back), opacity .25s var(--ease-back), filter .25s var(--ease-back);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; background: transparent; border: none; padding: 0;
 }
+.star svg { width: 100%; height: 100%; position: relative; z-index: 2; }
+.star svg path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; transition: all .25s; }
+.star.active { transform: scale(1.1); opacity: 1; }
+.star.active svg path { fill: currentColor; stroke: currentColor; stroke-width: 1; }
+.star.active svg { filter: drop-shadow(0 3px 9px rgba(201,169,97,0.5)); }
+@media (hover: hover) {
+  .star:hover { transform: scale(1.13); opacity: 1; }
+}
+
+/* Quiet invitation under the stars, unrated state only — removes any "what do
+   I do?" hesitation and balances the lower third. Fades out once a star is
+   tapped (the face + mood word + Continue take over). */
+.rating-hint {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+  opacity: 0.72;
+  max-height: 40px;
+  overflow: hidden;
+  transition: opacity .3s var(--ease-out), max-height .3s var(--ease-out), margin .3s var(--ease-out);
+}
+.rating-content.rated .rating-hint { opacity: 0; max-height: 0; margin-top: 0; pointer-events: none; }
 
 .rating-actions { margin-top: 20px; margin-bottom: 8px; width: 100%; display: flex; justify-content: center; }
 
