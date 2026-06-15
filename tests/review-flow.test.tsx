@@ -273,21 +273,19 @@ describe('platforms flow (5 stars)', () => {
   });
 });
 
-describe('public review available to every guest (no review gating)', () => {
-  it('offers a public review on the 1-2★ success screen, then routes to neutral platforms', async () => {
+describe('public review link (4★ only, owner choice)', () => {
+  it('offers it on the 4★ success screen, then routes to neutral platforms', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 1);
-    const sorry = within(getScreen('screenSorry'));
-    await user.click(sorry.getByRole('button', { name: /Food quality/ }));
-    await user.click(sorry.getByRole('button', { name: 'Send to manager' }));
+    await rateAndContinue(user, 4);
+    await user.click(
+      within(getScreen('screenImprove')).getByRole('button', { name: 'Send to manager' }),
+    );
 
-    // The unhappy guest is still OFFERED the public option (compliance).
-    const share = await screen.findByRole('button', { name: 'Share your experience publicly' });
+    const share = await screen.findByRole('button', { name: 'Share publicly' });
     await user.click(share);
 
-    // Lands on platforms with NEUTRAL copy — no celebratory headline, and the
-    // public review is genuinely reachable.
+    // Lands on platforms with NEUTRAL copy — no celebratory headline.
     expect(isActive('screenPlatforms')).toBe(true);
     const platforms = within(getScreen('screenPlatforms'));
     expect(platforms.getByText('Share your experience')).toBeInTheDocument();
@@ -295,16 +293,30 @@ describe('public review available to every guest (no review gating)', () => {
     expect(platforms.getByRole('button', { name: /Google/ })).toBeInTheDocument();
   });
 
-  it('offers a public review on the 3-4★ success screen too', async () => {
+  it('does NOT offer it on 3★', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
+    await rateAndContinue(user, 3);
     await user.click(
       within(getScreen('screenImprove')).getByRole('button', { name: 'Send to manager' }),
     );
+    await waitFor(() => expect(screen.getByText('Thank you for telling us')).toBeInTheDocument());
     expect(
-      await screen.findByRole('button', { name: 'Share your experience publicly' }),
-    ).toBeInTheDocument();
+      screen.queryByRole('button', { name: 'Share publicly' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does NOT offer it on 1-2★', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 2);
+    const sorry = within(getScreen('screenSorry'));
+    await user.click(sorry.getByRole('button', { name: /Food quality/ }));
+    await user.click(sorry.getByRole('button', { name: 'Send to manager' }));
+    await waitFor(() => expect(screen.getByText('The manager is on it')).toBeInTheDocument());
+    expect(
+      screen.queryByRole('button', { name: 'Share publicly' }),
+    ).not.toBeInTheDocument();
   });
 
   it('does not re-offer it on the 5★ skip success (already declined)', async () => {
@@ -314,7 +326,7 @@ describe('public review available to every guest (no review gating)', () => {
     await user.click(screen.getByRole('button', { name: 'Maybe next time' }));
     await waitFor(() => expect(screen.getByText('Thanks for visiting!')).toBeInTheDocument());
     expect(
-      screen.queryByRole('button', { name: 'Share your experience publicly' }),
+      screen.queryByRole('button', { name: 'Share publicly' }),
     ).not.toBeInTheDocument();
   });
 });

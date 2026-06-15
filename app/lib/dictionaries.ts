@@ -188,7 +188,7 @@ const en: Dict = {
   successTitleRated: 'Thanks for visiting!',
   successMsgRated:
     'No problem at all — we’re so glad you enjoyed your time with us. We hope to see you again soon.',
-  sharePublicAlso: 'Share your experience publicly',
+  sharePublicAlso: 'Share publicly',
   done: 'Done',
 
   fabLabel: 'Contact manager anonymously',
@@ -276,7 +276,7 @@ const fi: Dict = {
   successTitleRated: 'Kiitos käynnistä!',
   successMsgRated:
     'Ei hätää — olemme iloisia, että viihdyit. Toivottavasti näemme taas pian.',
-  sharePublicAlso: 'Jaa kokemuksesi julkisesti',
+  sharePublicAlso: 'Jaa julkisesti',
   done: 'Valmis',
 
   fabLabel: 'Ota yhteyttä anonyymisti',
@@ -364,7 +364,7 @@ const sv: Dict = {
   successTitleRated: 'Tack för besöket!',
   successMsgRated:
     'Inga problem alls — vi är så glada att du trivdes hos oss. Vi hoppas att vi ses snart igen.',
-  sharePublicAlso: 'Dela din upplevelse offentligt',
+  sharePublicAlso: 'Dela offentligt',
   done: 'Klar',
 
   fabLabel: 'Kontakta chefen anonymt',

@@ -434,27 +434,34 @@ textarea.comment:focus { outline: none; border-color: var(--accent); }
 .success-title { font-family: var(--font-serif); font-size: clamp(29px, 8.7cqi, 36px); font-weight: 500; color: var(--text); margin-bottom: 14px; letter-spacing: -1.2px; opacity: 0; transform: translateY(16px); transition: all .4s ease .25s; }
 .success-msg { font-size: 15px; color: var(--text-soft); line-height: 1.6; margin-bottom: 32px; max-width: 280px; font-weight: 400; opacity: 0; transform: translateY(16px); transition: all .4s ease .35s; }
 .success.show .success-title, .success.show .success-msg { opacity: 1; transform: translateY(0); }
-.success-cta { opacity: 0; transform: translateY(16px); transition: all .4s ease .45s; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.success-cta { opacity: 0; transform: translateY(16px); transition: all .4s ease .45s; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .success.show .success-cta { opacity: 1; transform: translateY(0); }
-/* Secondary "share publicly too" link — clearly available (compliance: never
-   hide the public option from any guest), visually below the primary Done. */
+/* Tertiary "share publicly" link — deliberately small and quiet so the primary
+   Done clearly leads, yet still legible + reachable (compliance: never hide or
+   visually suppress the public option for any guest). Shown after a private /
+   alerted submission when the venue has a platform configured. */
 .success-share {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: transparent;
   border: none;
-  color: var(--button);
+  color: var(--text-soft);
   font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 3px 7px;
+  border-radius: 8px;
+  transition: color .2s var(--ease-out);
 }
-.success-share svg { transition: transform .25s var(--ease-out); }
+.success-share svg { width: 11px; height: 11px; transition: transform .25s var(--ease-out); }
 @media (hover: hover) {
+  .success-share:hover { color: var(--button); }
   .success-share:hover svg { transform: translateX(2px); }
 }
+.success-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ============================== SORRY EXTRAS ============================== */
 .sorry-heart { width: 48px; height: 48px; margin: 4px auto 10px; color: var(--accent); animation: heartbeat 2.4s ease-in-out infinite; }
