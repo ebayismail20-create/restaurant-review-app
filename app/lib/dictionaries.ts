@@ -178,9 +178,12 @@ const en: Dict = {
   successTitleAlerted: 'The manager is on it',
   successMsgAlerted:
     'Your feedback goes straight to the manager, who reviews every message personally.',
-  successTitleRated: 'Thank you for the rating',
+  // Shown ONLY when a 5★ guest taps "Maybe next time" (declines a public
+  // review). Must answer the "no" graciously — not thank them for a "rating"
+  // they don't perceive submitting. Honest: 5★ means they did enjoy it.
+  successTitleRated: 'Thanks for visiting!',
   successMsgRated:
-    'We’re so glad you enjoyed your visit. We hope to see you again soon.',
+    'No problem at all — we’re so glad you enjoyed your time with us. We hope to see you again soon.',
   done: 'Done',
 
   fabLabel: 'Contact manager anonymously',
@@ -264,9 +267,9 @@ const fi: Dict = {
   successTitleAlerted: 'Päällikkö hoitaa asian',
   successMsgAlerted:
     'Palautteesi menee suoraan päällikölle, joka käy jokaisen viestin läpi henkilökohtaisesti.',
-  successTitleRated: 'Kiitos arvosanasta',
+  successTitleRated: 'Kiitos käynnistä!',
   successMsgRated:
-    'Hienoa, että nautit vierailustasi. Toivottavasti tapaamme pian uudelleen.',
+    'Ei hätää — olemme iloisia, että viihdyit. Toivottavasti näemme taas pian.',
   done: 'Valmis',
 
   fabLabel: 'Ota yhteyttä anonyymisti',
@@ -350,9 +353,9 @@ const sv: Dict = {
   successTitleAlerted: 'Chefen tar tag i det',
   successMsgAlerted:
     'Din feedback går direkt till chefen, som personligen går igenom varje meddelande.',
-  successTitleRated: 'Tack för betyget',
+  successTitleRated: 'Tack för besöket!',
   successMsgRated:
-    'Vi är så glada att du trivdes hos oss. Vi hoppas se dig igen snart.',
+    'Inga problem alls — vi är så glada att du trivdes hos oss. Vi hoppas att vi ses snart igen.',
   done: 'Klar',
 
   fabLabel: 'Kontakta chefen anonymt',

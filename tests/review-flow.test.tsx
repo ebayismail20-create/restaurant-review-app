@@ -248,10 +248,12 @@ describe('platforms flow (5 stars)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Maybe next time' }));
     await waitFor(() =>
-      expect(screen.getByText('Thank you for the rating')).toBeInTheDocument(),
+      expect(screen.getByText('Thanks for visiting!')).toBeInTheDocument(),
     );
-    // Honest copy, and no dishonest "posted a public review" claim.
+    // Copy answers the decline graciously — no dishonest "posted a public
+    // review" claim, and no awkward "thank you for the rating" non-sequitur.
     expect(screen.queryByText(/Thank you for sharing/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Thank you for the rating/)).not.toBeInTheDocument();
   });
 
   it('platform card opens the window synchronously and falls back on PLACEHOLDER urls', async () => {
