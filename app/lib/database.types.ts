@@ -104,6 +104,8 @@ export type Database = {
           message: string
           priority: string
           rating: number | null
+          resolved: boolean
+          resolved_at: string | null
           session_id: string
           table_id: string | null
           tag_keys: string[]
@@ -118,6 +120,8 @@ export type Database = {
           message?: string
           priority: string
           rating?: number | null
+          resolved?: boolean
+          resolved_at?: string | null
           session_id: string
           table_id?: string | null
           tag_keys?: string[]
@@ -132,6 +136,8 @@ export type Database = {
           message?: string
           priority?: string
           rating?: number | null
+          resolved?: boolean
+          resolved_at?: string | null
           session_id?: string
           table_id?: string | null
           tag_keys?: string[]
@@ -150,6 +156,41 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submission_notes: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          submission_id: string
+          tenant_id: string
+        }
+        Insert: {
+          author_id?: string
+          body: string
+          created_at?: string
+          id?: string
+          submission_id: string
+          tenant_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          submission_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_notes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
             referencedColumns: ["id"]
           },
         ]
