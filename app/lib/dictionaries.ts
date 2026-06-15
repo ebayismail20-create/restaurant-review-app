@@ -74,6 +74,10 @@ export interface Dict {
   // Platforms
   platformsTitle: string;
   platformsSub: string;
+  // Neutral variant shown when a 1-4★ guest reaches the platforms screen via
+  // "share publicly too" — no presumption they were delighted.
+  platformsTitleNeutral: string;
+  platformsSubNeutral: string;
   platformCardCta: string; // action sub-line on each review-platform card
   skipReview: string;
 
@@ -88,6 +92,7 @@ export interface Dict {
   successMsgAlerted: string;
   successTitleRated: string;
   successMsgRated: string;
+  sharePublicAlso: string; // secondary CTA: offer a public review to every guest
   done: string;
 
   // Contact (anonymous)
@@ -158,6 +163,8 @@ const en: Dict = {
 
   platformsTitle: 'You made\nour day!',
   platformsSub: 'A few kind words help our small team more than you’d think — it only takes about 30 seconds.',
+  platformsTitleNeutral: 'Share your\nexperience',
+  platformsSubNeutral: 'Your honest review helps other guests know what to expect — about 30 seconds.',
   platformCardCta: 'Leave a review · 30 sec',
   skipReview: 'Maybe next time',
 
@@ -181,6 +188,7 @@ const en: Dict = {
   successTitleRated: 'Thanks for visiting!',
   successMsgRated:
     'No problem at all — we’re so glad you enjoyed your time with us. We hope to see you again soon.',
+  sharePublicAlso: 'Share your experience publicly',
   done: 'Done',
 
   fabLabel: 'Contact manager anonymously',
@@ -251,6 +259,8 @@ const fi: Dict = {
 
   platformsTitle: 'Ihanaa\nkuulla!',
   platformsSub: 'Muutama ystävällinen sana auttaa pientä tiimiämme enemmän kuin uskotkaan — se vie vain noin 30 sekuntia.',
+  platformsTitleNeutral: 'Jaa\nkokemuksesi',
+  platformsSubNeutral: 'Rehellinen arviosi auttaa muita vieraita tietämään, mitä odottaa — noin 30 sekuntia.',
   platformCardCta: 'Jätä arvio · 30 s',
   skipReview: 'Ehkä ensi kerralla',
 
@@ -266,6 +276,7 @@ const fi: Dict = {
   successTitleRated: 'Kiitos käynnistä!',
   successMsgRated:
     'Ei hätää — olemme iloisia, että viihdyit. Toivottavasti näemme taas pian.',
+  sharePublicAlso: 'Jaa kokemuksesi julkisesti',
   done: 'Valmis',
 
   fabLabel: 'Ota yhteyttä anonyymisti',
@@ -336,6 +347,8 @@ const sv: Dict = {
 
   platformsTitle: 'Vad roligt\natt höra!',
   platformsSub: 'Några vänliga ord hjälper vårt lilla team mer än du tror — det tar bara cirka 30 sekunder.',
+  platformsTitleNeutral: 'Dela din\nupplevelse',
+  platformsSubNeutral: 'Ditt ärliga omdöme hjälper andra gäster att veta vad de kan förvänta sig — cirka 30 sekunder.',
   platformCardCta: 'Lämna ett omdöme · 30 sek',
   skipReview: 'Kanske nästa gång',
 
@@ -351,6 +364,7 @@ const sv: Dict = {
   successTitleRated: 'Tack för besöket!',
   successMsgRated:
     'Inga problem alls — vi är så glada att du trivdes hos oss. Vi hoppas att vi ses snart igen.',
+  sharePublicAlso: 'Dela din upplevelse offentligt',
   done: 'Klar',
 
   fabLabel: 'Kontakta chefen anonymt',

@@ -201,6 +201,9 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   // Success overlay refs — focus moves to the heading on open.
   const successHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const successDoneRef = useRef<HTMLButtonElement | null>(null);
+  // Optional "share publicly too" link on the success overlay (private/alerted
+  // paths) — part of the focus trap when present.
+  const successShareRef = useRef<HTMLButtonElement | null>(null);
 
   // Star refs for roving-tabindex + arrow-key navigation. Index 0..4 maps to
   // ratings 1..5. Following the WAI-ARIA APG radiogroup pattern.
@@ -277,18 +280,27 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     return () => window.clearTimeout(t);
   }, [showSuccess]);
 
-  // Tab trap inside the success overlay. Only one focusable element exists
-  // (the Done button) so we just keep focus on it.
+  // Tab trap inside the success overlay. There are one or two focusable
+  // controls (Done, and optionally "share publicly too") — cycle between them.
   const onOverlayKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (!showSuccess) return;
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        successDoneRef.current?.focus();
-      } else if (e.key === 'Escape') {
+      if (e.key === 'Escape') {
         e.preventDefault();
         successDoneRef.current?.click();
+        return;
       }
+      if (e.key !== 'Tab') return;
+      e.preventDefault();
+      const focusables = [successShareRef.current, successDoneRef.current].filter(
+        (el): el is HTMLButtonElement => el !== null,
+      );
+      if (focusables.length === 0) return;
+      const idx = focusables.indexOf(document.activeElement as HTMLButtonElement);
+      const nextIdx = e.shiftKey
+        ? (idx <= 0 ? focusables.length - 1 : idx - 1)
+        : (idx >= focusables.length - 1 ? 0 : idx + 1);
+      focusables[nextIdx]?.focus();
     },
     [showSuccess],
   );
@@ -574,12 +586,43 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     }
   }, [buildRequest, dict, notifyManager, selectedTags, showSuccessScreen]);
 
+  const resetApp = useCallback(() => {
+    setShowSuccess(false);
+    setSelectedTags(new Set());
+    setCommentImprove('');
+    setCommentSorry('');
+    setShowTagsError(false);
+    setSendError(null);
+    setContactMessage('');
+    setCurrentRating(null);
+    setCurrentScreen('rating');
+    setThemeClass(DEFAULT_THEME);
+    // Fresh session ID — this is a new visit's submission from the guest's POV.
+    setSessionId(createSessionId());
+  }, []);
+
   /**
-   * "Maybe next time" — 5★ guest opted out of leaving a public review.
-   * We still send the payload so the 5★ rating isn't lost; the success
-   * copy stays honest (rating saved, no public review claimed).
+   * The platforms screen is reached two ways:
+   *  - the 5★ happy path (rating === 5): the primary celebratory ask.
+   *  - the "share publicly too" link on a private/alerted success screen
+   *    (rating 1-4): a BONUS, compliance-driven offer — the public option is
+   *    available to every guest, not gated behind a high score.
+   * The copy + skip behaviour adapt so an unhappy guest never sees a
+   * celebratory headline or a 5★ "thanks for visiting" message.
+   */
+  const platformsAreBonus = isRating(currentRating) && currentRating < 5;
+
+  /**
+   * The skip button on the platforms screen. On the 5★ path we still log the
+   * rating ("Maybe next time" without losing the 5★). In bonus mode the guest
+   * already submitted their real feedback and saw their confirmation, so
+   * declining the extra public review just closes cleanly.
    */
   const finishFromPlatforms = useCallback(() => {
+    if (platformsAreBonus) {
+      resetApp();
+      return;
+    }
     // The 5★ is a nice-to-have for analytics, not the guest's goal — never make
     // a happy guest wait on flaky restaurant Wi-Fi to leave. Show the thank-you
     // instantly and persist in the background (notifyManager retries transient
@@ -587,7 +630,18 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     // an instant exit).
     void notifyManager(buildRequest('rated')).catch(() => { /* best-effort */ });
     showSuccessScreen('rated');
-  }, [buildRequest, notifyManager, showSuccessScreen]);
+  }, [platformsAreBonus, resetApp, buildRequest, notifyManager, showSuccessScreen]);
+
+  /**
+   * "Share publicly too" — from a private/alerted success screen, send the
+   * guest to the (neutral-copy) platforms screen. The public review option is
+   * offered to EVERY guest regardless of score; we never suppress it for low
+   * ratings (review gating). Their private feedback is already submitted.
+   */
+  const sharePublicly = useCallback(() => {
+    setShowSuccess(false);
+    goTo('platforms');
+  }, [goTo]);
 
   const openPlatform = useCallback(
     (platform: Platform) => {
@@ -636,21 +690,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     }
   }, [buildRequest, contactMessage, dict, notifyManager, showSuccessScreen]);
 
-  const resetApp = useCallback(() => {
-    setShowSuccess(false);
-    setSelectedTags(new Set());
-    setCommentImprove('');
-    setCommentSorry('');
-    setShowTagsError(false);
-    setSendError(null);
-    setContactMessage('');
-    setCurrentRating(null);
-    setCurrentScreen('rating');
-    setThemeClass(DEFAULT_THEME);
-    // Fresh session ID — this is a new visit's submission from the guest's POV.
-    setSessionId(createSessionId());
-  }, []);
-
   // ---- Derived values ----
 
   const faceAttrs = useMemo(
@@ -690,6 +729,17 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
         return { title: dict.successTitlePosted, msg: dict.successMsgPosted };
     }
   })();
+
+  /**
+   * Compliance: the public-review option must be reachable by EVERY guest, not
+   * just high scorers (suppressing it for low ratings is "review gating", which
+   * violates Google's policy + the FTC review-suppression rule). So after a
+   * private/alerted submission we offer "share publicly too" — provided the
+   * venue actually configured a platform. Not shown on 'posted' (already did)
+   * or 'rated' (already saw + declined the platforms screen).
+   */
+  const showSharePublic =
+    (successKind === 'private' || successKind === 'alerted') && venue.platforms.length > 0;
 
   // ---- Render ----
 
@@ -1100,16 +1150,25 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
           inert={isScreenInert('platforms')}
         >
           <div className="platforms-content">
-            <div className="step-label">{dict.lastStep}</div>
-            <div className="platforms-emoji" aria-hidden="true">🎉</div>
+            {/* Celebratory chrome only on the 5★ happy path. In bonus mode
+                (a 1-4★ guest sharing publicly too) the tone stays neutral —
+                no "Last step", no 🎉, no presumption they were delighted. */}
+            {!platformsAreBonus ? (
+              <>
+                <div className="step-label">{dict.lastStep}</div>
+                <div className="platforms-emoji" aria-hidden="true">🎉</div>
+              </>
+            ) : null}
             <h2
               ref={isActive('platforms') ? headingRef : null}
               className="platforms-title"
               tabIndex={-1}
             >
-              {dict.platformsTitle}
+              {platformsAreBonus ? dict.platformsTitleNeutral : dict.platformsTitle}
             </h2>
-            <p className="platforms-sub">{dict.platformsSub}</p>
+            <p className="platforms-sub">
+              {platformsAreBonus ? dict.platformsSubNeutral : dict.platformsSub}
+            </p>
 
             {/* The platforms the owner configured in the dashboard, in order.
                 Google/Tripadvisor get brand marks; anything else gets a clean
@@ -1190,6 +1249,29 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
             >
               <span>{dict.done}</span>
             </button>
+            {showSharePublic ? (
+              <button
+                type="button"
+                className="success-share"
+                onClick={sharePublicly}
+                ref={successShareRef}
+              >
+                <span>{dict.sharePublicAlso}</span>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            ) : null}
           </div>
         </div>
 

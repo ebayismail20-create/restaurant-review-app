@@ -273,6 +273,52 @@ describe('platforms flow (5 stars)', () => {
   });
 });
 
+describe('public review available to every guest (no review gating)', () => {
+  it('offers a public review on the 1-2★ success screen, then routes to neutral platforms', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 1);
+    const sorry = within(getScreen('screenSorry'));
+    await user.click(sorry.getByRole('button', { name: /Food quality/ }));
+    await user.click(sorry.getByRole('button', { name: 'Send to manager' }));
+
+    // The unhappy guest is still OFFERED the public option (compliance).
+    const share = await screen.findByRole('button', { name: 'Share your experience publicly' });
+    await user.click(share);
+
+    // Lands on platforms with NEUTRAL copy — no celebratory headline, and the
+    // public review is genuinely reachable.
+    expect(isActive('screenPlatforms')).toBe(true);
+    const platforms = within(getScreen('screenPlatforms'));
+    expect(platforms.getByText('Share your experience')).toBeInTheDocument();
+    expect(platforms.queryByText(/made our day/)).not.toBeInTheDocument();
+    expect(platforms.getByRole('button', { name: /Google/ })).toBeInTheDocument();
+  });
+
+  it('offers a public review on the 3-4★ success screen too', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+    await user.click(
+      within(getScreen('screenImprove')).getByRole('button', { name: 'Send to manager' }),
+    );
+    expect(
+      await screen.findByRole('button', { name: 'Share your experience publicly' }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not re-offer it on the 5★ skip success (already declined)', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 5);
+    await user.click(screen.getByRole('button', { name: 'Maybe next time' }));
+    await waitFor(() => expect(screen.getByText('Thanks for visiting!')).toBeInTheDocument());
+    expect(
+      screen.queryByRole('button', { name: 'Share your experience publicly' }),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe('reset + language', () => {
   it('Done resets to a fresh rating screen', async () => {
     const user = userEvent.setup();
