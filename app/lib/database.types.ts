@@ -15,6 +15,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_insights: {
+        Row: {
+          created_by: string | null
+          data: Json
+          generated_at: string
+          id: string
+          model: string | null
+          tenant_id: string
+          window_days: number
+        }
+        Insert: {
+          created_by?: string | null
+          data: Json
+          generated_at?: string
+          id?: string
+          model?: string | null
+          tenant_id: string
+          window_days?: number
+        }
+        Update: {
+          created_by?: string | null
+          data?: Json
+          generated_at?: string
+          id?: string
+          model?: string | null
+          tenant_id?: string
+          window_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_insights_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           channel: string
