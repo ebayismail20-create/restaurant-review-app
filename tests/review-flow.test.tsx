@@ -73,6 +73,60 @@ describe('rating screen', () => {
   });
 });
 
+describe('back navigation (state preservation)', () => {
+  it('Back keeps the rating lit — no reset to the blank logo screen', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+    expect(isActive('screenImprove')).toBe(true);
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+
+    // Rating screen again, but the choice survives: stars lit, brand mark
+    // collapsed (.rated), and Continue ready — not the disabled blank state.
+    expect(isActive('screenRating')).toBe(true);
+    expect(document.getElementById('ratingContent')).toHaveClass('rated');
+    expect(screen.getByRole('radio', { name: 'Rate 4 out of 5 stars' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
+  });
+
+  it('adjusting within the same bucket (4→3) keeps the drafted reason', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+    await user.click(within(getScreen('screenImprove')).getByRole('button', { name: 'Food' }));
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    await user.click(screen.getByRole('radio', { name: 'Rate 3 out of 5 stars' }));
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(isActive('screenImprove')).toBe(true);
+    expect(within(getScreen('screenImprove')).getByRole('button', { name: 'Food' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('changing across buckets (4→2) drops the now-stale reason tags', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+    await user.click(within(getScreen('screenImprove')).getByRole('button', { name: 'Food' }));
+    expect(getScreen('screenImprove')).toHaveClass('has-selection');
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    await user.click(screen.getByRole('radio', { name: 'Rate 2 out of 5 stars' }));
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    // The sorry screen starts clean — a positive tag must not leak across.
+    expect(isActive('screenSorry')).toBe(true);
+    expect(getScreen('screenSorry')).not.toHaveClass('has-selection');
+  });
+});
+
 describe('sorry flow (1-2 stars)', () => {
   it('requires at least one tag, but the comment is optional', async () => {
     const user = userEvent.setup();

@@ -80,6 +80,15 @@ const THEME_BY_RATING: Record<Rating, string> = {
 /** Idle theme before (and after) a rating is chosen. */
 const DEFAULT_THEME = 'theme-good';
 
+/**
+ * Which outcome a rating routes to on Continue. The flow has three buckets;
+ * crossing between them invalidates any reason tags/comment already drafted
+ * for the old bucket (see `setRating`). Adjusting within a bucket keeps them.
+ */
+type RatingBucket = 'sorry' | 'improve' | 'platforms';
+const bucketOf = (r: Rating): RatingBucket =>
+  r === 5 ? 'platforms' : r >= 3 ? 'improve' : 'sorry';
+
 // Keep comments short enough to fit a push notification and stay out of spam territory.
 const MAX_COMMENT = 600;
 
@@ -302,18 +311,13 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     }
-    // Entering the rating screen fresh: stars empty, face/word/Continue collapsed.
-    if (screen === 'rating') {
-      setCurrentRating(null);
-    }
-    // Entering improve/sorry: clear stale selections so the comment textarea
-    // stays hidden until the customer picks a reason.
-    if (screen === 'improve' || screen === 'sorry') {
-      setSelectedTags(new Set());
-      setCommentImprove('');
-      setCommentSorry('');
-      setShowTagsError(false);
-    }
+    // Rating + reason drafts deliberately PERSIST across navigation — the
+    // big-app pattern: going Back never silently discards what the guest
+    // already entered. The rating screen keeps its stars lit, the logo
+    // collapsed, and Continue ready; reason tags + comment survive a
+    // peek-and-return. Stale state is cleared only when it's genuinely
+    // invalidated: a rating change that crosses outcome buckets (see
+    // `setRating`) or a brand-new visit (see `resetApp`).
     setSendError(null);
     setCurrentScreen(screen);
   }, []);
@@ -339,12 +343,20 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   /** Continue from the rating screen — routes by rating bucket. */
   const continueFromRating = useCallback(() => {
     if (!isRating(currentRating)) return;
-    if (currentRating === 5) goTo('platforms');
-    else if (currentRating >= 3) goTo('improve');
-    else goTo('sorry');
+    goTo(bucketOf(currentRating));
   }, [currentRating, goTo]);
 
   const setRating = useCallback((value: Rating) => {
+    // Changing the rating ACROSS an outcome boundary (sorry ↔ improve ↔
+    // platforms) invalidates any reason tags/comment drafted for the old
+    // bucket — the chips shown differ — so clear them. Adjusting WITHIN a
+    // bucket (1↔2, 3↔4) keeps the draft, since the same chips apply.
+    if (currentRating !== null && bucketOf(currentRating) !== bucketOf(value)) {
+      setSelectedTags(new Set());
+      setCommentImprove('');
+      setCommentSorry('');
+      setShowTagsError(false);
+    }
     setCurrentRating(value);
     setThemeClass(THEME_BY_RATING[value]);
     // Micro haptic pulse — 10ms is barely perceptible but makes the star
@@ -352,7 +364,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(10);
     }
-  }, []);
+  }, [currentRating]);
 
   /**
    * Roving-tabindex stop for the star radiogroup. The stop lives on the
