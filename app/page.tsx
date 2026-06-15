@@ -579,13 +579,13 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
    * We still send the payload so the 5★ rating isn't lost; the success
    * copy stays honest (rating saved, no public review claimed).
    */
-  const finishFromPlatforms = useCallback(async () => {
-    try {
-      await notifyManager(buildRequest('rated'));
-    } catch {
-      // Fire-and-forget — don't block the guest from leaving the screen if
-      // the network is offline. The SW will retry via background sync (Phase 2).
-    }
+  const finishFromPlatforms = useCallback(() => {
+    // The 5★ is a nice-to-have for analytics, not the guest's goal — never make
+    // a happy guest wait on flaky restaurant Wi-Fi to leave. Show the thank-you
+    // instantly and persist in the background (notifyManager retries transient
+    // failures itself; a lost best-effort rating is an acceptable trade for
+    // an instant exit).
+    void notifyManager(buildRequest('rated')).catch(() => { /* best-effort */ });
     showSuccessScreen('rated');
   }, [buildRequest, notifyManager, showSuccessScreen]);
 
@@ -1114,11 +1114,14 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
             {/* The platforms the owner configured in the dashboard, in order.
                 Google/Tripadvisor get brand marks; anything else gets a clean
                 generic icon. */}
-            {venue.platforms.map((platform) => (
+            {venue.platforms.map((platform, index) => (
               <button
                 type="button"
                 key={`${platform.kind}-${platform.url}`}
-                className="platform-card"
+                // The first (owner-ordered) platform is the primary CTA — given
+                // visual weight so the happy guest has one obvious place to go
+                // instead of a menu to choose from.
+                className={`platform-card ${index === 0 ? 'platform-card-primary' : ''}`}
                 data-platform={platform.kind}
                 onClick={() => openPlatform(platform)}
               >
@@ -1127,7 +1130,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                 </div>
                 <div className="platform-info">
                   <div className="platform-name">{platform.label}</div>
-                  <div className="platform-stars" aria-hidden="true">★★★★★</div>
+                  <div className="platform-action">{dict.platformCardCta}</div>
                 </div>
                 <span className="platform-cta" aria-hidden="true">
                   <svg

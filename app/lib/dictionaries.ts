@@ -18,9 +18,6 @@ export interface Dict {
   langFiLabel: string;
   langSvLabel: string;
 
-  // Template: {table}, {server}
-  tableChip: string;
-
   // Step labels
   step1of2: string;
   step2of2: string;
@@ -77,6 +74,7 @@ export interface Dict {
   // Platforms
   platformsTitle: string;
   platformsSub: string;
+  platformCardCta: string; // action sub-line on each review-platform card
   skipReview: string;
 
   // Success — copy keyed by outcome so the overlay stays honest about what
@@ -111,8 +109,6 @@ const en: Dict = {
   langEnLabel: 'Switch to English',
   langFiLabel: 'Vaihda suomeksi',
   langSvLabel: 'Byt till svenska',
-
-  tableChip: 'Table {table} · Server: {server}',
 
   step1of2: 'Step 1 of 2',
   step2of2: 'Step 2 of 2',
@@ -160,8 +156,9 @@ const en: Dict = {
   sendRetry: 'Try again',
   sendError: 'Couldn’t send. Please try again.',
 
-  platformsTitle: 'Help future guests\nfind us.',
-  platformsSub: 'Pick a platform — thirty seconds, and it means everything to our team.',
+  platformsTitle: 'You made\nour day!',
+  platformsSub: 'A few kind words help our small team more than you’d think — it only takes about 30 seconds.',
+  platformCardCta: 'Leave a review · 30 sec',
   skipReview: 'Maybe next time',
 
   // Tapping a platform only OPENS the review page — we can't know the guest
@@ -192,7 +189,7 @@ const en: Dict = {
   anonPrivacyNote:
     'We don’t ask for your name or email. We log the table and the time so the manager can follow up — and messages are auto-deleted after 90 days.',
   contactTitle: 'Message the\nmanager directly',
-  contactSub: 'Skip the comment card. Tell the manager exactly what they need to know.',
+  contactSub: 'Prefer to write it yourself? Tell the manager exactly what happened.',
   contactLabel: 'Your message to the manager',
   contactPh: 'Write your message here…',
   contactSend: 'Send privately',
@@ -205,8 +202,6 @@ const fi: Dict = {
   langEnLabel: 'Switch to English',
   langFiLabel: 'Vaihda suomeksi',
   langSvLabel: 'Byt till svenska',
-
-  tableChip: 'Pöytä {table} · Tarjoilija: {server}',
 
   step1of2: 'Vaihe 1/2',
   step2of2: 'Vaihe 2/2',
@@ -254,8 +249,9 @@ const fi: Dict = {
   sendRetry: 'Yritä uudelleen',
   sendError: 'Lähetys epäonnistui. Yritä uudelleen.',
 
-  platformsTitle: 'Auta tulevia vieraita\nlöytämään meidät.',
-  platformsSub: 'Valitse alusta — kolmekymmentä sekuntia, ja se merkitsee tiimillemme paljon.',
+  platformsTitle: 'Ihanaa\nkuulla!',
+  platformsSub: 'Muutama ystävällinen sana auttaa pientä tiimiämme enemmän kuin uskotkaan — se vie vain noin 30 sekuntia.',
+  platformCardCta: 'Jätä arvio · 30 s',
   skipReview: 'Ehkä ensi kerralla',
 
   successTitlePosted: 'Kiitos!',
@@ -278,7 +274,7 @@ const fi: Dict = {
   anonPrivacyNote:
     'Emme kysy nimeäsi tai sähköpostiasi. Tallennamme pöydän ja kellonajan, jotta päällikkö voi seurata palautetta — viestit poistetaan 90 päivän kuluttua.',
   contactTitle: 'Viesti suoraan\npäällikölle',
-  contactSub: 'Ohita palautelomake. Kerro päällikölle juuri se, mitä hänen tulee tietää.',
+  contactSub: 'Kirjoitatko mieluummin itse? Kerro päällikölle tarkalleen, mitä tapahtui.',
   contactLabel: 'Viestisi päällikölle',
   contactPh: 'Kirjoita viestisi tähän…',
   contactSend: 'Lähetä luottamuksellisesti',
@@ -291,8 +287,6 @@ const sv: Dict = {
   langEnLabel: 'Switch to English',
   langFiLabel: 'Vaihda suomeksi',
   langSvLabel: 'Byt till svenska',
-
-  tableChip: 'Bord {table} · Servitör: {server}',
 
   step1of2: 'Steg 1 av 2',
   step2of2: 'Steg 2 av 2',
@@ -340,8 +334,9 @@ const sv: Dict = {
   sendRetry: 'Försök igen',
   sendError: 'Kunde inte skicka. Försök igen.',
 
-  platformsTitle: 'Hjälp framtida gäster\natt hitta oss.',
-  platformsSub: 'Välj en plattform — trettio sekunder, och det betyder allt för vårt team.',
+  platformsTitle: 'Vad roligt\natt höra!',
+  platformsSub: 'Några vänliga ord hjälper vårt lilla team mer än du tror — det tar bara cirka 30 sekunder.',
+  platformCardCta: 'Lämna ett omdöme · 30 sek',
   skipReview: 'Kanske nästa gång',
 
   successTitlePosted: 'Tack!',
@@ -364,7 +359,7 @@ const sv: Dict = {
   anonPrivacyNote:
     'Vi frågar inte efter ditt namn eller din e-post. Vi loggar bordet och tiden så att chefen kan följa upp — meddelanden raderas efter 90 dagar.',
   contactTitle: 'Skicka meddelande\ndirekt till chefen',
-  contactSub: 'Hoppa över kommentarsformuläret. Berätta för chefen exakt vad hen behöver veta.',
+  contactSub: 'Skriver du hellre själv? Berätta för chefen exakt vad som hände.',
   contactLabel: 'Ditt meddelande till chefen',
   contactPh: 'Skriv ditt meddelande här…',
   contactSend: 'Skicka privat',

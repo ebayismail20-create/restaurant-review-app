@@ -24,7 +24,15 @@ from the database** — the guest app hardcodes nothing:
 - **Review platforms**: the `tenant_platforms` table holds an ordered,
   toggleable list. An owner can show Google only, Tripadvisor, both, or any
   other platform/website via a custom label + link. Google/Tripadvisor get
-  brand icons; anything else gets a clean generic mark.
+  brand icons; anything else gets a clean generic mark. The **first** enabled
+  platform (by `sort_order`) renders as the primary CTA, so order matters.
+
+  > **Conversion-critical:** the link must deep-link to the *write-a-review*
+  > dialog, **not** the business profile — landing a happy guest on the
+  > listing (where they must hunt for the review button) is the single biggest
+  > drop-off. Use Google's `https://search.google.com/local/writereview?placeid=<PLACE_ID>`
+  > (or the `g.page/r/<id>/review` short link), and Tripadvisor's
+  > `UserReviewEdit` URL. The dashboard should validate/encourage this.
 
 This repo is the **guest-facing rating app only**. The manager dashboard is a
 separate application (it reads the same Supabase database via authenticated,

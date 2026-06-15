@@ -50,8 +50,6 @@ describe('i18n dictionaries', () => {
 
   it('templated keys keep their placeholders in every language', () => {
     for (const lang of langs) {
-      expect(i18n[lang].tableChip).toContain('{table}');
-      expect(i18n[lang].tableChip).toContain('{server}');
       expect(i18n[lang].starAriaLabel).toContain('{n}');
       expect(i18n[lang].tagsSelectedAnnouncement).toContain('{n}');
     }
@@ -127,7 +125,6 @@ describe('venueFromRow', () => {
       brandName: 'Cafe Aalto',
       brandTag: 'Bakery · Turku',
       tableNumber: '5',
-      serverName: 'Eero',
       tableToken: 'tok123',
       brandColor: '#123456',
       logoUrl: null,
@@ -136,7 +133,7 @@ describe('venueFromRow', () => {
     expect(v.platforms[0]).toEqual({ kind: 'google', label: 'Google', url: 'https://g.example/review' });
   });
 
-  it('tolerates a null tagline / server and a missing platforms array', () => {
+  it('tolerates a null tagline and a missing platforms array', () => {
     const v = venueFromRow(
       { ...row, tagline: null, server_name: null, platforms: undefined as never },
       's',
@@ -144,7 +141,6 @@ describe('venueFromRow', () => {
       't',
     );
     expect(v.brandTag).toBe('');
-    expect(v.serverName).toBe('');
     expect(v.platforms).toEqual([]);
   });
 });

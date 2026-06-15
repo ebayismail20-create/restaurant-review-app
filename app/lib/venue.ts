@@ -26,7 +26,6 @@ export interface VenueContext {
   brandTag: string;       // tagline under the name (e.g. "Fine dining · Helsinki")
   locationName: string;   // longer display name, used in submission context
   tableNumber: string;    // display label for the table (matches tables.label)
-  serverName: string;     // display label for the server
   // Branding the owner sets in the dashboard. Null → the guest app falls back
   // to the plain brand-name treatment / mood-theme accent.
   logoUrl: string | null;
@@ -69,7 +68,6 @@ export function venueFromRow(
     brandTag: row.tagline ?? '',
     locationName: row.location_name,
     tableNumber: tableLabel,
-    serverName: row.server_name ?? '',
     logoUrl: row.logo_url,
     brandColor: row.brand_color,
     tableToken: token,
@@ -108,7 +106,6 @@ export const DEMO_VENUE: VenueContext = {
   brandTag: 'Fine dining · Helsinki',
   locationName: 'Bistro Nordic · Helsinki',
   tableNumber: '12',
-  serverName: 'Anna',
   logoUrl: null,
   // Demo brand color → a burgundy "B" monogram. A real tenant sets its own
   // (or uploads a logo) in the dashboard.
