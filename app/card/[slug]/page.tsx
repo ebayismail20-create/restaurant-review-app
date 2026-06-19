@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { getSupabase } from '../../lib/supabase';
+import { resolvePlatformUrl, type Platform } from '../../lib/venue';
 import { CardView } from './CardView';
 
 /**
@@ -52,9 +53,13 @@ export default async function CardPage({ params }: PageProps<'/card/[slug]'>) {
   const card = await fetchCard(slug);
   if (!card) notFound();
 
-  const platforms = Array.isArray(card.platforms)
-    ? (card.platforms as { kind: string; label: string; url: string }[])
-    : [];
+  // Resolve unconfigured PLACEHOLDER links to the platform's home page (same
+  // graceful fallback the review flow uses) so a card button never dead-ends.
+  const platforms = (Array.isArray(card.platforms) ? card.platforms : [])
+    .map((p) => {
+      const raw = p as Platform;
+      return { kind: String(raw.kind), label: String(raw.label), url: resolvePlatformUrl(raw).url };
+    });
 
   return (
     <CardView

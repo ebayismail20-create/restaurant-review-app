@@ -23,8 +23,22 @@ interface Card {
  * carries a per-table token; this card is a marketing/contact artifact and
  * sends straight to the public review pages.)
  */
+/** Pick black or white for readable text on a given hex background (WCAG-ish). */
+function readableOn(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return '#ffffff';
+  const n = parseInt(m[1], 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  const L = 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  return L > 0.45 ? '#2a1418' : '#ffffff';
+}
+
 export function CardView({ card, cardUrl }: { card: Card; cardUrl: string }) {
   const accent = card.brand_color || '#6B1F2A';
+  const onAccent = readableOn(accent);
   const platforms = Array.isArray(card.platforms) ? card.platforms : [];
 
   const saveContact = useCallback(() => {
@@ -49,7 +63,7 @@ export function CardView({ card, cardUrl }: { card: Card; cardUrl: string }) {
   }, [card, cardUrl]);
 
   return (
-    <div className="card-page" style={{ ['--accent' as string]: accent }}>
+    <div className="card-page" style={{ ['--accent' as string]: accent, ['--on-accent' as string]: onAccent }}>
       <main className="card-shell">
         <div className="card-brandmark">
           {card.logo_url ? (

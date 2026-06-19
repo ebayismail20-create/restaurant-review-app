@@ -639,13 +639,16 @@ textarea.comment.tall { min-height: clamp(130px, 24dvh, 160px); }
 }
 .card-brandmark { margin-bottom: 16px; }
 .card-brandmark img {
-  width: 84px; height: 84px; object-fit: cover;
+  width: 84px; height: 84px;
+  /* contain (not cover) so wide logos show in full instead of being cropped. */
+  object-fit: contain;
+  padding: 10px; background: #fff;
   border-radius: 22px; border: 1px solid rgba(42, 20, 24, 0.08);
   box-shadow: 0 10px 24px -12px rgba(42, 20, 24, 0.3);
 }
 .card-monogram {
   width: 84px; height: 84px; display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 22px; color: #fff; font-family: var(--font-cormorant), serif;
+  border-radius: 22px; color: var(--on-accent, #fff); font-family: var(--font-cormorant), serif;
   font-size: 42px; font-weight: 600; box-shadow: 0 12px 26px -12px var(--accent);
 }
 .card-name { font-family: var(--font-cormorant), serif; font-size: 30px; font-weight: 600; line-height: 1.1; letter-spacing: -0.5px; color: #2a1418; }
@@ -658,11 +661,12 @@ textarea.comment.tall { min-height: clamp(130px, 24dvh, 160px); }
 .card-btn {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 14px 18px; border-radius: 16px; text-decoration: none;
-  background: var(--accent); color: #fff; font-size: 15px; font-weight: 600;
+  background: var(--accent); color: var(--on-accent, #fff); font-size: 15px; font-weight: 600;
   box-shadow: 0 12px 24px -14px var(--accent); transition: transform .15s ease, filter .15s ease;
 }
 .card-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
-.card-btn[data-kind="tripadvisor"] { background: #00AF87; box-shadow: 0 12px 24px -14px #00AF87; }
+/* Tripadvisor's brand green darkened so white text clears WCAG AA contrast. */
+.card-btn[data-kind="tripadvisor"] { background: #00795D; color: #fff; box-shadow: 0 12px 24px -14px #00795D; }
 .card-save {
   margin-top: 14px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 12px; border-radius: 16px; border: 1px solid rgba(42, 20, 24, 0.16);
