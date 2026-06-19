@@ -607,3 +607,67 @@ textarea.comment.tall { min-height: clamp(130px, 24dvh, 160px); }
     padding-top: calc(8px + env(safe-area-inset-top, 0px));
   }
 }
+
+/* ============================ DIGITAL BUSINESS CARD ============================ */
+/* Standalone public page at /card/[slug]; --accent is set inline from the
+   venue's brand color. Self-contained so it doesn't depend on the rating
+   flow's theme classes. */
+/* Own the full viewport with a warm backdrop (the app's dark layout stage
+   doesn't suit a shareable card). --accent is set inline from the brand color. */
+.card-page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: auto;
+  background:
+    radial-gradient(1100px 520px at 50% -5%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    #f1e8da;
+  font-family: var(--font-sans);
+}
+.card-shell {
+  width: 100%;
+  max-width: 380px;
+  background: #fffdf9;
+  border: 1px solid rgba(42, 20, 24, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 40px 80px -40px rgba(42, 20, 24, 0.4);
+  padding: 36px 28px 24px;
+  text-align: center;
+}
+.card-brandmark { margin-bottom: 16px; }
+.card-brandmark img {
+  width: 84px; height: 84px; object-fit: cover;
+  border-radius: 22px; border: 1px solid rgba(42, 20, 24, 0.08);
+  box-shadow: 0 10px 24px -12px rgba(42, 20, 24, 0.3);
+}
+.card-monogram {
+  width: 84px; height: 84px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 22px; color: #fff; font-family: var(--font-cormorant), serif;
+  font-size: 42px; font-weight: 600; box-shadow: 0 12px 26px -12px var(--accent);
+}
+.card-name { font-family: var(--font-cormorant), serif; font-size: 30px; font-weight: 600; line-height: 1.1; letter-spacing: -0.5px; color: #2a1418; }
+.card-tagline { margin-top: 4px; color: #8a7a6e; font-size: 14px; }
+.card-location { margin-top: 2px; color: #b6a795; font-size: 13px; }
+.card-divider { position: relative; margin: 22px 0 16px; color: #b6a795; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+.card-divider::before, .card-divider::after { content: ''; position: absolute; top: 50%; width: calc(50% - 60px); height: 1px; background: rgba(42, 20, 24, 0.1); }
+.card-divider::before { left: 0; } .card-divider::after { right: 0; }
+.card-actions { display: flex; flex-direction: column; gap: 10px; }
+.card-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 18px; border-radius: 16px; text-decoration: none;
+  background: var(--accent); color: #fff; font-size: 15px; font-weight: 600;
+  box-shadow: 0 12px 24px -14px var(--accent); transition: transform .15s ease, filter .15s ease;
+}
+.card-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.card-btn[data-kind="tripadvisor"] { background: #00AF87; box-shadow: 0 12px 24px -14px #00AF87; }
+.card-save {
+  margin-top: 14px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px; border-radius: 16px; border: 1px solid rgba(42, 20, 24, 0.16);
+  background: transparent; color: #2a1418; font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: background .15s ease;
+}
+.card-save:hover { background: rgba(42, 20, 24, 0.04); }
+.card-footer { margin-top: 18px; color: #c4b6a6; font-size: 11px; letter-spacing: 0.5px; }

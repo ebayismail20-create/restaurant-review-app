@@ -391,6 +391,19 @@ export type Database = {
         Args: Record<string, never>
         Returns: string[]
       }
+      get_card: {
+        Args: {
+          p_slug: string
+        }
+        Returns: {
+          brand_name: string
+          tagline: string
+          location_name: string
+          logo_url: string
+          brand_color: string
+          platforms: Json
+        }[]
+      }
       get_venue: {
         Args: {
           p_slug: string
