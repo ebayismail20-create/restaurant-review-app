@@ -50,17 +50,21 @@ function clientIp(request: NextRequest): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  // Correlation id: echoed in the response and attached to every log/Sentry
+  // event for this request, so a guest-reported failure maps to one trace.
+  const requestId = crypto.randomUUID();
+
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return NextResponse.json({ error: 'invalid_json', request_id: requestId }, { status: 400 });
   }
 
   const parsed = reviewRequestSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'invalid_request', details: parsed.error.flatten() },
+      { error: 'invalid_request', details: parsed.error.flatten(), request_id: requestId },
       { status: 400 },
     );
   }
@@ -72,9 +76,9 @@ export async function POST(request: NextRequest) {
   try {
     supabase = getSupabase();
   } catch (e) {
-    console.error('[api/submissions]', (e as Error).message);
-    captureException(e, { tags: { stage: 'supabase_init' } });
-    return NextResponse.json({ error: 'server_error' }, { status: 500 });
+    console.error(`[api/submissions] [${requestId}] ${(e as Error).message}`);
+    captureException(e, { tags: { stage: 'supabase_init' }, extra: { requestId } });
+    return NextResponse.json({ error: 'server_error', request_id: requestId }, { status: 500 });
   }
 
   const { data, error } = await supabase.rpc('submit_review', {
@@ -93,20 +97,25 @@ export async function POST(request: NextRequest) {
   if (error) {
     const code = error.message?.trim();
     if (code === 'rate_limited') {
-      return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+      return NextResponse.json({ error: 'rate_limited', request_id: requestId }, { status: 429 });
     }
     if (code && FORBIDDEN_DB_ERRORS.has(code)) {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'forbidden', request_id: requestId }, { status: 403 });
     }
     // Unknown DB/transport failure — report it and return an opaque 500 so
     // internals never reach the guest. This is the "failed submission" signal
     // that matters most operationally.
-    console.error('[api/submissions] submit_review failed:', error.message);
+    console.error(`[api/submissions] [${requestId}] submit_review failed:`, error.message);
     captureException(new Error(error.message), {
-      tags: { stage: 'submit_review', kind: req.kind },
-      extra: { code: error.code, details: error.details },
+      tags: {
+        stage: 'submit_review',
+        tenant_slug: req.slug,
+        kind: req.kind,
+        rating: String(req.rating ?? 'none'),
+      },
+      extra: { requestId, code: error.code, details: error.details },
     });
-    return NextResponse.json({ error: 'server_error' }, { status: 500 });
+    return NextResponse.json({ error: 'server_error', request_id: requestId }, { status: 500 });
   }
 
   // Fire the manager alert AFTER the response is sent (Next's after()). The
@@ -115,7 +124,7 @@ export async function POST(request: NextRequest) {
   // Edge Function invoke runs post-response. No-op for positive kinds.
   after(() => triggerNotification(supabase, req.kind, data));
 
-  return NextResponse.json({ id: data }, { status: 201 });
+  return NextResponse.json({ id: data, request_id: requestId }, { status: 201 });
 }
 
 // Kinds that page the manager. Mirrors the enqueue condition in the

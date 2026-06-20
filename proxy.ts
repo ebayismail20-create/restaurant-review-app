@@ -112,6 +112,14 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // Auto-upgrade any accidental http:// reference to https://. Empty
     // value directive — serialized below as the bare key.
     'upgrade-insecure-requests': [],
+
+    // Surface real violations in production (dev is noisy with HMR). report-to
+    // is the modern Reporting API (group defined via Reporting-Endpoints below);
+    // report-uri is the deprecated-but-widely-supported fallback. Both point at
+    // our own collector route.
+    ...(isDev
+      ? {}
+      : { 'report-uri': ['/api/csp-report'], 'report-to': ['csp-endpoint'] }),
   };
 
   return Object.entries(directives)
@@ -142,6 +150,11 @@ export function proxy(request: NextRequest) {
   });
   // The browser-facing CSP — same value, set on the response.
   response.headers.set('Content-Security-Policy', csp);
+  // Reporting API endpoint group referenced by the `report-to` directive
+  // (production only, matching buildCsp).
+  if (!isDev) {
+    response.headers.set('Reporting-Endpoints', 'csp-endpoint="/api/csp-report"');
+  }
   return response;
 }
 
