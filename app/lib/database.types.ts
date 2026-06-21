@@ -394,6 +394,7 @@ export type Database = {
           manager_name: string | null
           name: string
           public_review_min_rating: number
+          show_name_with_logo: boolean
           slug: string
           tagline: string | null
           tripadvisor_review_url: string | null
@@ -409,6 +410,7 @@ export type Database = {
           manager_name?: string | null
           name: string
           public_review_min_rating?: number
+          show_name_with_logo?: boolean
           slug: string
           tagline?: string | null
           tripadvisor_review_url?: string | null
@@ -424,6 +426,7 @@ export type Database = {
           manager_name?: string | null
           name?: string
           public_review_min_rating?: number
+          show_name_with_logo?: boolean
           slug?: string
           tagline?: string | null
           tripadvisor_review_url?: string | null
@@ -462,6 +465,7 @@ export type Database = {
           logo_url: string
           platforms: Json
           public_review_min_rating: number
+          show_name_with_logo: boolean
           tagline: string
         }[]
       }
@@ -475,6 +479,7 @@ export type Database = {
           platforms: Json
           public_review_min_rating: number
           server_name: string
+          show_name_with_logo: boolean
           tagline: string
         }[]
       }

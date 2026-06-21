@@ -30,6 +30,11 @@ export interface VenueContext {
   // to the plain brand-name treatment / mood-theme accent.
   logoUrl: string | null;
   brandColor: string | null; // hex; tints the monogram tile when no logo image
+  // When a logo image is set, also show the text venue name beneath it. Default
+  // false (the logo is usually the wordmark, so the name would be redundant).
+  // An owner whose logo is an icon flips this on so guests still see the name.
+  // Ignored when there's no logo — the name always shows in that case.
+  showNameWithLogo: boolean;
   // Per-table capability token. In production this rides in the QR URL and
   // is rendered into the page server-side; the guest's browser is meant to
   // hold it. It is NOT a server secret — it only authorizes posting AS this
@@ -54,6 +59,7 @@ export interface VenueRow {
   brand_color: string | null;
   server_name: string | null;
   public_review_min_rating: number | null;
+  show_name_with_logo: boolean | null;
   platforms: Platform[]; // jsonb array from the function
 }
 
@@ -76,6 +82,7 @@ export function venueFromRow(
     tableNumber: tableLabel,
     logoUrl: row.logo_url,
     brandColor: row.brand_color,
+    showNameWithLogo: row.show_name_with_logo ?? false,
     tableToken: token,
     platforms: Array.isArray(row.platforms) ? row.platforms : [],
     // Default to 5 (original behaviour) if the column is somehow absent.
@@ -118,6 +125,7 @@ export const DEMO_VENUE: VenueContext = {
   // Demo brand color → a burgundy "B" monogram. A real tenant sets its own
   // (or uploads a logo) in the dashboard.
   brandColor: '#6B1F2A',
+  showNameWithLogo: false,
   // Seeded table token, supplied via env so the secret stays out of git.
   // Empty in environments that haven't configured it → submissions fail
   // closed (403) rather than silently succeeding.

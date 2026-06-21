@@ -203,10 +203,10 @@ body {
   margin-bottom: 14px;
 }
 
-/* When the owner uploaded a logo it IS the brand mark, so let it lead and drop
-   the duplicate text name (most restaurant logos are wordmarks). The monogram
-   path below keeps the name — a single brand-color letter isn't enough alone. */
-.venue-brand:has(.venue-logo) .venue-brand-name { display: none; }
+/* When the owner uploaded a logo it leads as the brand mark. By default the
+   text name is hidden (the logo is usually the wordmark) — the guest header
+   only renders it when there's no logo, or when the owner opted in via the
+   dashboard's "Show venue name with logo" setting. */
 .venue-brand:has(.venue-logo) .venue-logo { margin-bottom: 12px; }
 
 /* Monogram crest: brand-color tile ringed by a gold hairline (the signature

@@ -875,7 +875,9 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                   {venue.brandName.charAt(0)}
                 </span>
               ) : null}
-              <span className="venue-brand-name">{venue.brandName}</span>
+              {!venue.logoUrl || venue.showNameWithLogo ? (
+                <span className="venue-brand-name">{venue.brandName}</span>
+              ) : null}
               {venue.brandTag ? (
                 <>
                   <span className="venue-flourish" aria-hidden="true" />
