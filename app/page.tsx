@@ -29,6 +29,7 @@ interface HomeVenueRow {
   brand_color: string | null;
   public_review_min_rating: number | null;
   show_name_with_logo: boolean | null;
+  logo_shape: string | null;
   platforms: Platform[];
 }
 
@@ -47,6 +48,7 @@ export default async function Home() {
         logoUrl: row.logo_url,
         brandColor: row.brand_color,
         showNameWithLogo: row.show_name_with_logo ?? false,
+        logoShape: row.logo_shape === 'round' ? 'round' : 'plate',
         platforms:
           Array.isArray(row.platforms) && row.platforms.length > 0
             ? row.platforms

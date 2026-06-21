@@ -203,6 +203,18 @@ body {
   margin-bottom: 14px;
 }
 
+/* 'round' shape (owner's choice): a circular badge instead of the card. The
+   image is contained within the circle with padding, so square emblems look
+   like a coin and wide wordmarks stay fully legible. */
+.venue-logo.is-round {
+  width: clamp(88px, 25cqi, 108px);
+  height: clamp(88px, 25cqi, 108px);
+  max-width: none;
+  max-height: none;
+  border-radius: 50%;
+  padding: 16px;
+}
+
 /* When the owner uploaded a logo it leads as the brand mark. By default the
    text name is hidden (the logo is usually the wordmark) — the guest header
    only renders it when there's no logo, or when the owner opted in via the

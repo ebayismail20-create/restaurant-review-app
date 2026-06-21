@@ -35,6 +35,9 @@ export interface VenueContext {
   // An owner whose logo is an icon flips this on so guests still see the name.
   // Ignored when there's no logo — the name always shows in that case.
   showNameWithLogo: boolean;
+  // Logo frame shape the owner picked: 'plate' (rounded card with a gold
+  // hairline) or 'round' (circular badge). Only affects how a logo is framed.
+  logoShape: 'plate' | 'round';
   // Per-table capability token. In production this rides in the QR URL and
   // is rendered into the page server-side; the guest's browser is meant to
   // hold it. It is NOT a server secret — it only authorizes posting AS this
@@ -60,6 +63,7 @@ export interface VenueRow {
   server_name: string | null;
   public_review_min_rating: number | null;
   show_name_with_logo: boolean | null;
+  logo_shape: string | null;
   platforms: Platform[]; // jsonb array from the function
 }
 
@@ -83,6 +87,7 @@ export function venueFromRow(
     logoUrl: row.logo_url,
     brandColor: row.brand_color,
     showNameWithLogo: row.show_name_with_logo ?? false,
+    logoShape: row.logo_shape === 'round' ? 'round' : 'plate',
     tableToken: token,
     platforms: Array.isArray(row.platforms) ? row.platforms : [],
     // Default to 5 (original behaviour) if the column is somehow absent.
@@ -126,6 +131,7 @@ export const DEMO_VENUE: VenueContext = {
   // (or uploads a logo) in the dashboard.
   brandColor: '#6B1F2A',
   showNameWithLogo: false,
+  logoShape: 'plate',
   // Seeded table token, supplied via env so the secret stays out of git.
   // Empty in environments that haven't configured it → submissions fail
   // closed (403) rather than silently succeeding.

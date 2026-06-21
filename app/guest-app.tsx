@@ -865,7 +865,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
             <div className="venue-brand">
               {venue.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img className="venue-logo" src={venue.logoUrl} alt={venue.brandName} />
+                <img className={`venue-logo${venue.logoShape === 'round' ? ' is-round' : ''}`} src={venue.logoUrl} alt={venue.brandName} />
               ) : venue.brandColor ? (
                 <span
                   className="venue-monogram"

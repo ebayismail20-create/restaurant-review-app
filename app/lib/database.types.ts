@@ -389,6 +389,7 @@ export type Database = {
           google_review_url: string | null
           id: string
           location_name: string
+          logo_shape: string
           logo_url: string | null
           manager_email: string | null
           manager_name: string | null
@@ -405,6 +406,7 @@ export type Database = {
           google_review_url?: string | null
           id?: string
           location_name: string
+          logo_shape?: string
           logo_url?: string | null
           manager_email?: string | null
           manager_name?: string | null
@@ -421,6 +423,7 @@ export type Database = {
           google_review_url?: string | null
           id?: string
           location_name?: string
+          logo_shape?: string
           logo_url?: string | null
           manager_email?: string | null
           manager_name?: string | null
@@ -462,6 +465,7 @@ export type Database = {
           brand_color: string
           brand_name: string
           location_name: string
+          logo_shape: string
           logo_url: string
           platforms: Json
           public_review_min_rating: number
@@ -475,6 +479,7 @@ export type Database = {
           brand_color: string
           brand_name: string
           location_name: string
+          logo_shape: string
           logo_url: string
           platforms: Json
           public_review_min_rating: number
