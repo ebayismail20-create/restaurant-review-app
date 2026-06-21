@@ -10,6 +10,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -94,37 +96,41 @@ export type Database = {
           },
         ]
       }
-      tenant_notification_channels: {
+      submission_notes: {
         Row: {
+          author_id: string
+          body: string
           created_at: string
-          destination: string
-          enabled: boolean
           id: string
-          kind: string
-          label: string | null
+          submission_id: string
           tenant_id: string
         }
         Insert: {
+          author_id?: string
+          body: string
           created_at?: string
-          destination: string
-          enabled?: boolean
           id?: string
-          kind: string
-          label?: string | null
+          submission_id: string
           tenant_id: string
         }
         Update: {
+          author_id?: string
+          body?: string
           created_at?: string
-          destination?: string
-          enabled?: boolean
           id?: string
-          kind?: string
-          label?: string | null
+          submission_id?: string
           tenant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_notification_channels_tenant_id_fkey"
+            foreignKeyName: "submission_notes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_notes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -198,41 +204,6 @@ export type Database = {
           },
         ]
       }
-      submission_notes: {
-        Row: {
-          author_id: string
-          body: string
-          created_at: string
-          id: string
-          submission_id: string
-          tenant_id: string
-        }
-        Insert: {
-          author_id?: string
-          body: string
-          created_at?: string
-          id?: string
-          submission_id: string
-          tenant_id: string
-        }
-        Update: {
-          author_id?: string
-          body?: string
-          created_at?: string
-          id?: string
-          submission_id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "submission_notes_submission_id_fkey"
-            columns: ["submission_id"]
-            isOneToOne: false
-            referencedRelation: "submissions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       tables: {
         Row: {
           active: boolean
@@ -271,6 +242,38 @@ export type Database = {
           },
         ]
       }
+      tenant_invites: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          role: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          role: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          role?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_invites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_members: {
         Row: {
           created_at: string
@@ -293,6 +296,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_notification_channels: {
+        Row: {
+          created_at: string
+          destination: string
+          enabled: boolean
+          id: string
+          kind: string
+          label: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          enabled?: boolean
+          id?: string
+          kind: string
+          label?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          label?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_notification_channels_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -352,30 +393,37 @@ export type Database = {
           manager_email: string | null
           manager_name: string | null
           name: string
+          public_review_min_rating: number
           slug: string
           tagline: string | null
           tripadvisor_review_url: string | null
         }
         Insert: {
+          brand_color?: string | null
           created_at?: string
           google_review_url?: string | null
           id?: string
           location_name: string
+          logo_url?: string | null
           manager_email?: string | null
           manager_name?: string | null
           name: string
+          public_review_min_rating?: number
           slug: string
           tagline?: string | null
           tripadvisor_review_url?: string | null
         }
         Update: {
+          brand_color?: string | null
           created_at?: string
           google_review_url?: string | null
           id?: string
           location_name?: string
+          logo_url?: string | null
           manager_email?: string | null
           manager_name?: string | null
           name?: string
+          public_review_min_rating?: number
           slug?: string
           tagline?: string | null
           tripadvisor_review_url?: string | null
@@ -387,45 +435,66 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      current_tenant_ids: {
-        Args: Record<string, never>
-        Returns: string[]
-      }
-      rotate_table_token: {
-        Args: {
-          p_table_id: string
-        }
+      add_team_member: {
+        Args: { p_email: string; p_role: string; p_tenant_id: string }
         Returns: string
       }
+      current_manager_tenant_ids: { Args: never; Returns: string[] }
+      current_owner_tenant_ids: { Args: never; Returns: string[] }
+      current_tenant_ids: { Args: never; Returns: string[] }
       get_card: {
-        Args: {
-          p_slug: string
-        }
+        Args: { p_slug: string }
         Returns: {
+          brand_color: string
           brand_name: string
-          tagline: string
           location_name: string
           logo_url: string
-          brand_color: string
           platforms: Json
+          tagline: string
+        }[]
+      }
+      get_home_venue: {
+        Args: never
+        Returns: {
+          brand_color: string
+          brand_name: string
+          location_name: string
+          logo_url: string
+          platforms: Json
+          public_review_min_rating: number
+          tagline: string
         }[]
       }
       get_venue: {
-        Args: {
-          p_slug: string
-          p_table_label: string
-          p_token: string
-        }
+        Args: { p_slug: string; p_table_label: string; p_token: string }
         Returns: {
+          brand_color: string
           brand_name: string
-          tagline: string
           location_name: string
           logo_url: string
-          brand_color: string
-          server_name: string
-          public_review_min_rating: number
           platforms: Json
+          public_review_min_rating: number
+          server_name: string
+          tagline: string
         }[]
+      }
+      list_team_members: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          email: string
+          role: string
+          user_id: string
+        }[]
+      }
+      purge_old_feedback: { Args: never; Returns: undefined }
+      remove_team_member: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      rotate_table_token: { Args: { p_table_id: string }; Returns: string }
+      set_team_role: {
+        Args: { p_role: string; p_tenant_id: string; p_user_id: string }
+        Returns: undefined
       }
       submit_review: {
         Args: {
@@ -451,3 +520,126 @@ export type Database = {
     }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

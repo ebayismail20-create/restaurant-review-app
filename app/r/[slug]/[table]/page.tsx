@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 
-import RestaurantReviewApp from '../../../page';
+import RestaurantReviewApp from '../../../guest-app';
 import { getSupabase } from '../../../lib/supabase';
 import { venueFromRow, type VenueRow } from '../../../lib/venue';
 

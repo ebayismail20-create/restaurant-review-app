@@ -10,7 +10,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import RestaurantReviewApp from '../app/page';
+import RestaurantReviewApp from '../app/guest-app';
 import { DEMO_VENUE } from '../app/lib/venue';
 
 // A venue that has opted in to sending 4★ guests to the public review screen.
