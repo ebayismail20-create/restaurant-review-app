@@ -80,6 +80,7 @@ export interface Dict {
   platformsTitleNeutral: string;
   platformsSubNeutral: string;
   platformCardCta: string; // action sub-line on each review-platform card
+  reviewStarterHint: string; // calm nudge to beat the blank-Google-box
   skipReview: string;
 
   // Success — copy keyed by outcome so the overlay stays honest about what
@@ -168,6 +169,7 @@ const en: Dict = {
   platformsTitleNeutral: 'Share your\nexperience',
   platformsSubNeutral: 'Your honest review helps other guests know what to expect — about 30 seconds.',
   platformCardCta: 'Leave a review · 30 sec',
+  reviewStarterHint: 'Not sure what to write? A sentence or two is perfect.',
   skipReview: 'Maybe next time',
 
   // Tapping a platform only OPENS the review page — we can't know the guest
@@ -175,7 +177,7 @@ const en: Dict = {
   // the visit and frames reviews generally, true either way.
   successTitlePosted: 'Thank you!',
   successMsgPosted:
-    'Every review helps future guests discover us. We’re so glad you came in.',
+    'Every review helps future guests discover us. We’d love to welcome you back soon.',
   successTitlePrivate: 'Thank you for telling us',
   successMsgPrivate:
     'The manager reads every word. We’ll use this to make your next visit better.',
@@ -265,11 +267,12 @@ const fi: Dict = {
   platformsTitleNeutral: 'Jaa\nkokemuksesi',
   platformsSubNeutral: 'Rehellinen arviosi auttaa muita vieraita tietämään, mitä odottaa — noin 30 sekuntia.',
   platformCardCta: 'Jätä arvio · 30 s',
+  reviewStarterHint: 'Etkö tiedä mitä kirjoittaa? Pari lausetta riittää hyvin.',
   skipReview: 'Ehkä ensi kerralla',
 
   successTitlePosted: 'Kiitos!',
   successMsgPosted:
-    'Jokainen arvio auttaa tulevia vieraita löytämään meidät. Hienoa, että vierailit.',
+    'Jokainen arvio auttaa tulevia vieraita löytämään meidät. Tervetuloa uudelleen pian.',
   successTitlePrivate: 'Kiitos kun kerroit',
   successMsgPrivate:
     'Päällikkö lukee jokaisen sanan. Käytämme palautteesi seuraavan vierailusi parantamiseen.',
@@ -354,11 +357,12 @@ const sv: Dict = {
   platformsTitleNeutral: 'Dela din\nupplevelse',
   platformsSubNeutral: 'Ditt ärliga omdöme hjälper andra gäster att veta vad de kan förvänta sig — cirka 30 sekunder.',
   platformCardCta: 'Lämna ett omdöme · 30 sek',
+  reviewStarterHint: 'Vet du inte vad du ska skriva? Ett par meningar räcker fint.',
   skipReview: 'Kanske nästa gång',
 
   successTitlePosted: 'Tack!',
   successMsgPosted:
-    'Varje omdöme hjälper framtida gäster att hitta oss. Vad roligt att du kom in.',
+    'Varje omdöme hjälper framtida gäster att hitta oss. Välkommen tillbaka snart.',
   successTitlePrivate: 'Tack för att du berättade',
   successMsgPrivate:
     'Chefen läser varje ord. Vi använder din feedback för att göra ditt nästa besök bättre.',

@@ -54,13 +54,20 @@ describe('rating screen', () => {
     expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
   });
 
-  it('routes by rating bucket: 5→platforms, 3→improve, 1→sorry', async () => {
+  it('routes by rating bucket: 4-5→platforms, 3→improve, 1-2→sorry', async () => {
     const user = userEvent.setup();
 
     const { unmount: u1 } = render(<RestaurantReviewApp />);
     await rateAndContinue(user, 5);
     expect(isActive('screenPlatforms')).toBe(true);
     u1();
+
+    // 4★ is a satisfied guest → public review (the conversion lever), not the
+    // private "where could we be better" flow.
+    const { unmount: u4 } = render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+    expect(isActive('screenPlatforms')).toBe(true);
+    u4();
 
     const { unmount: u2 } = render(<RestaurantReviewApp />);
     await rateAndContinue(user, 3);
@@ -77,7 +84,7 @@ describe('back navigation (state preservation)', () => {
   it('Back keeps the rating lit — no reset to the blank logo screen', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
+    await rateAndContinue(user, 3);
     expect(isActive('screenImprove')).toBe(true);
 
     await user.click(screen.getByRole('button', { name: 'Back' }));
@@ -86,39 +93,39 @@ describe('back navigation (state preservation)', () => {
     // collapsed (.rated), and Continue ready — not the disabled blank state.
     expect(isActive('screenRating')).toBe(true);
     expect(document.getElementById('ratingContent')).toHaveClass('rated');
-    expect(screen.getByRole('radio', { name: 'Rate 4 out of 5 stars' })).toHaveAttribute(
+    expect(screen.getByRole('radio', { name: 'Rate 3 out of 5 stars' })).toHaveAttribute(
       'aria-checked',
       'true',
     );
     expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
   });
 
-  it('adjusting within the same bucket (4→3) keeps the drafted reason', async () => {
+  it('adjusting within the same bucket (2→1) keeps the drafted reason', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
-    await user.click(within(getScreen('screenImprove')).getByRole('button', { name: 'Food' }));
+    await rateAndContinue(user, 2);
+    await user.click(within(getScreen('screenSorry')).getByRole('button', { name: /Long wait/ }));
 
     await user.click(screen.getByRole('button', { name: 'Back' }));
-    await user.click(screen.getByRole('radio', { name: 'Rate 3 out of 5 stars' }));
+    await user.click(screen.getByRole('radio', { name: 'Rate 1 out of 5 stars' }));
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
-    expect(isActive('screenImprove')).toBe(true);
-    expect(within(getScreen('screenImprove')).getByRole('button', { name: 'Food' })).toHaveAttribute(
+    expect(isActive('screenSorry')).toBe(true);
+    expect(within(getScreen('screenSorry')).getByRole('button', { name: /Long wait/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
   });
 
-  it('changing across buckets (4→2) drops the now-stale reason tags', async () => {
+  it('changing across buckets (3→1) drops the now-stale reason tags', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
+    await rateAndContinue(user, 3);
     await user.click(within(getScreen('screenImprove')).getByRole('button', { name: 'Food' }));
     expect(getScreen('screenImprove')).toHaveClass('has-selection');
 
     await user.click(screen.getByRole('button', { name: 'Back' }));
-    await user.click(screen.getByRole('radio', { name: 'Rate 2 out of 5 stars' }));
+    await user.click(screen.getByRole('radio', { name: 'Rate 1 out of 5 stars' }));
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     // The sorry screen starts clean — a positive tag must not leak across.
@@ -181,11 +188,11 @@ describe('sorry flow (1-2 stars)', () => {
   });
 });
 
-describe('improve flow (3-4 stars)', () => {
+describe('improve flow (3 stars)', () => {
   it('sends without validation and shows the private-feedback copy', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
+    await rateAndContinue(user, 3);
     const improve = within(getScreen('screenImprove'));
 
     await user.click(improve.getByRole('button', { name: 'Send to manager' }));
@@ -209,7 +216,7 @@ describe('offline resilience (submission retry)', () => {
     fetchMock.mockRejectedValueOnce(new Error('network blip')).mockResolvedValue(ok201());
 
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
+    await rateAndContinue(user, 3);
     await user.click(within(getScreen('screenImprove')).getByRole('button', { name: 'Send to manager' }));
 
     await waitFor(
@@ -231,7 +238,7 @@ describe('offline resilience (submission retry)', () => {
     );
 
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
+    await rateAndContinue(user, 3);
     const improve = within(getScreen('screenImprove'));
     await user.click(improve.getByRole('button', { name: 'Send to manager' }));
 
@@ -240,7 +247,30 @@ describe('offline resilience (submission retry)', () => {
   });
 });
 
-describe('platforms flow (5 stars)', () => {
+describe('platforms flow (4-5 stars)', () => {
+  it('a 4★ guest gets the public ask in MEASURED copy, not the 5★ celebration', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+
+    expect(isActive('screenPlatforms')).toBe(true);
+    const platforms = within(getScreen('screenPlatforms'));
+    expect(platforms.getByText('Share your experience')).toBeInTheDocument();
+    expect(platforms.queryByText(/made our day/)).not.toBeInTheDocument();
+  });
+
+  it('a 4★ guest who declines is still thanked (rating not lost) and not re-offered share', async () => {
+    const user = userEvent.setup();
+    render(<RestaurantReviewApp />);
+    await rateAndContinue(user, 4);
+
+    await user.click(screen.getByRole('button', { name: 'Maybe next time' }));
+    await waitFor(() => expect(screen.getByText('Thanks for visiting!')).toBeInTheDocument());
+    // Reached platforms as their primary step, so declining closes gracefully —
+    // no second "Share publicly" loop.
+    expect(screen.queryByRole('button', { name: 'Share publicly' })).not.toBeInTheDocument();
+  });
+
   it('skip ("Maybe next time") shows the honest rated copy, not a posted claim', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
@@ -323,7 +353,7 @@ describe('reset + language', () => {
   it('Done resets to a fresh rating screen', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);
-    await rateAndContinue(user, 4);
+    await rateAndContinue(user, 3);
     await user.click(
       within(getScreen('screenImprove')).getByRole('button', { name: 'Send to manager' }),
     );

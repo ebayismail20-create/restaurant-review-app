@@ -86,8 +86,12 @@ const DEFAULT_THEME = 'theme-good';
  * for the old bucket (see `setRating`). Adjusting within a bucket keeps them.
  */
 type RatingBucket = 'sorry' | 'improve' | 'platforms';
+// Satisfied guests (4-5★) are invited to leave a public review; a 3★ gives
+// private "where could we be better" feedback; 1-2★ reach the urgent private
+// flow. The public option stays reachable for everyone (1-3★ via the
+// "Share publicly" link on their success screen), so we never gate it.
 const bucketOf = (r: Rating): RatingBucket =>
-  r === 5 ? 'platforms' : r >= 3 ? 'improve' : 'sorry';
+  r >= 4 ? 'platforms' : r === 3 ? 'improve' : 'sorry';
 
 // Keep comments short enough to fit a push notification and stay out of spam territory.
 const MAX_COMMENT = 600;
@@ -208,6 +212,10 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   const [currentLang, setCurrentLang] = useState<Lang>(DEFAULT_LANG);
   const [selectedTags, setSelectedTags] = useState<ReadonlySet<TagKey>>(new Set());
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  // True only when the platforms screen was reached via the "Share publicly"
+  // link AFTER private feedback was already submitted (so declining just
+  // closes). False when 4-5★ guests land here as their primary step.
+  const [platformsAfterSubmit, setPlatformsAfterSubmit] = useState<boolean>(false);
   const [successKind, setSuccessKind] = useState<SuccessKind>('posted');
   const [contactMessage, setContactMessage] = useState<string>('');
   const [commentImprove, setCommentImprove] = useState<string>('');
@@ -386,6 +394,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   /** Continue from the rating screen — routes by rating bucket. */
   const continueFromRating = useCallback(() => {
     if (!isRating(currentRating)) return;
+    setPlatformsAfterSubmit(false); // a 4-5★ guest lands here as their primary step
     goTo(bucketOf(currentRating));
   }, [currentRating, goTo]);
 
@@ -627,41 +636,37 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     setContactMessage('');
     setCurrentRating(null);
     setCurrentScreen('rating');
+    setPlatformsAfterSubmit(false);
     setThemeClass(DEFAULT_THEME);
     // Fresh session ID — this is a new visit's submission from the guest's POV.
     setSessionId(createSessionId());
   }, []);
 
   /**
-   * The platforms screen is reached two ways:
-   *  - the 5★ happy path (rating === 5): the primary celebratory ask.
-   *  - the "share publicly too" link on a private/alerted success screen
-   *    (rating 1-4): a BONUS, compliance-driven offer — the public option is
-   *    available to every guest, not gated behind a high score.
-   * The copy + skip behaviour adapt so an unhappy guest never sees a
-   * celebratory headline or a 5★ "thanks for visiting" message.
+   * Copy tone on the platforms screen adapts to the rating:
+   *  - 5★ → celebratory ("You made our day!", 🎉, "Last step").
+   *  - 4★, or any 1-3★ guest who tapped "Share publicly" after private
+   *    feedback → measured, neutral copy: no celebration, no presumption of
+   *    delight. (Tone is rating-driven; the skip behaviour below is path-driven.)
    */
-  const platformsAreBonus = isRating(currentRating) && currentRating < 5;
+  const platformsMeasured = isRating(currentRating) && currentRating < 5;
 
   /**
-   * The skip button on the platforms screen. On the 5★ path we still log the
-   * rating ("Maybe next time" without losing the 5★). In bonus mode the guest
-   * already submitted their real feedback and saw their confirmation, so
-   * declining the extra public review just closes cleanly.
+   * The skip button ("Maybe next time"). If the guest already submitted private
+   * feedback and is only here for the bonus public ask, declining just closes.
+   * Otherwise they arrived as their primary step (a 4-5★ guest), so declining
+   * still records their rating and shows a gracious thank-you — a 4★ who skips
+   * is never lost. Logged in the background so a happy guest never waits on
+   * flaky restaurant Wi-Fi.
    */
   const finishFromPlatforms = useCallback(() => {
-    if (platformsAreBonus) {
+    if (platformsAfterSubmit) {
       resetApp();
       return;
     }
-    // The 5★ is a nice-to-have for analytics, not the guest's goal — never make
-    // a happy guest wait on flaky restaurant Wi-Fi to leave. Show the thank-you
-    // instantly and persist in the background (notifyManager retries transient
-    // failures itself; a lost best-effort rating is an acceptable trade for
-    // an instant exit).
     void notifyManager(buildRequest('rated')).catch(() => { /* best-effort */ });
     showSuccessScreen('rated');
-  }, [platformsAreBonus, resetApp, buildRequest, notifyManager, showSuccessScreen]);
+  }, [platformsAfterSubmit, resetApp, buildRequest, notifyManager, showSuccessScreen]);
 
   /**
    * "Share publicly too" — from a private/alerted success screen, send the
@@ -671,6 +676,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
    */
   const sharePublicly = useCallback(() => {
     setShowSuccess(false);
+    setPlatformsAfterSubmit(true); // already submitted; declining just closes
     goTo('platforms');
   }, [goTo]);
 
@@ -1180,7 +1186,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
           </button>
         </div>
 
-        {/* ---------------- PLATFORMS (rating 5) ---------------- */}
+        {/* ---------------- PLATFORMS (rating 4-5, + "share publicly" bonus) ---------------- */}
         <div
           id="screenPlatforms"
           className={`screen ${isActive('platforms') ? 'active' : ''}`}
@@ -1188,10 +1194,10 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
           inert={isScreenInert('platforms')}
         >
           <div className="platforms-content">
-            {/* Celebratory chrome only on the 5★ happy path. In bonus mode
-                (a 1-4★ guest sharing publicly too) the tone stays neutral —
-                no "Last step", no 🎉, no presumption they were delighted. */}
-            {!platformsAreBonus ? (
+            {/* Celebratory chrome only on the 5★ happy path. For a 4★ (or a
+                1-3★ guest sharing publicly too) the tone stays measured — no
+                "Last step", no 🎉, no presumption they were delighted. */}
+            {!platformsMeasured ? (
               <>
                 <div className="step-label">{dict.lastStep}</div>
                 <div className="platforms-emoji" aria-hidden="true">🎉</div>
@@ -1202,10 +1208,10 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               className="platforms-title"
               tabIndex={-1}
             >
-              {platformsAreBonus ? dict.platformsTitleNeutral : dict.platformsTitle}
+              {platformsMeasured ? dict.platformsTitleNeutral : dict.platformsTitle}
             </h2>
             <p className="platforms-sub">
-              {platformsAreBonus ? dict.platformsSubNeutral : dict.platformsSub}
+              {platformsMeasured ? dict.platformsSubNeutral : dict.platformsSub}
             </p>
 
             {/* The platforms the owner configured in the dashboard, in order.
@@ -1244,6 +1250,10 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                 </span>
               </button>
             ))}
+
+            {/* Calm nudge to beat the blank-Google-box that kills posts on the
+                platform's side, where our funnel can't follow. */}
+            <p className="platforms-starter">{dict.reviewStarterHint}</p>
 
             <button type="button" className="skip" onClick={finishFromPlatforms}>
               {dict.skipReview}
