@@ -423,6 +423,7 @@ export type Database = {
           logo_url: string
           brand_color: string
           server_name: string
+          public_review_min_rating: number
           platforms: Json
         }[]
       }

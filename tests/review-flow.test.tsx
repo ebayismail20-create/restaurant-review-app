@@ -11,6 +11,10 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import RestaurantReviewApp from '../app/page';
+import { DEMO_VENUE } from '../app/lib/venue';
+
+// A venue that has opted in to sending 4★ guests to the public review screen.
+const fourStarPublicVenue = { ...DEMO_VENUE, publicReviewMinRating: 4 };
 
 function getScreen(id: string): HTMLElement {
   const el = document.getElementById(id);
@@ -54,7 +58,7 @@ describe('rating screen', () => {
     expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
   });
 
-  it('routes by rating bucket: 4-5→platforms, 3→improve, 1-2→sorry', async () => {
+  it('routes by rating bucket (default threshold 5): 5→platforms, 3-4→improve, 1-2→sorry', async () => {
     const user = userEvent.setup();
 
     const { unmount: u1 } = render(<RestaurantReviewApp />);
@@ -62,11 +66,11 @@ describe('rating screen', () => {
     expect(isActive('screenPlatforms')).toBe(true);
     u1();
 
-    // 4★ is a satisfied guest → public review (the conversion lever), not the
-    // private "where could we be better" flow.
+    // Default: a satisfied 4★ goes to PRIVATE feedback. Owners can opt in to
+    // sending 4★ public — see the "owner opt-in" block below.
     const { unmount: u4 } = render(<RestaurantReviewApp />);
     await rateAndContinue(user, 4);
-    expect(isActive('screenPlatforms')).toBe(true);
+    expect(isActive('screenImprove')).toBe(true);
     u4();
 
     const { unmount: u2 } = render(<RestaurantReviewApp />);
@@ -247,10 +251,10 @@ describe('offline resilience (submission retry)', () => {
   });
 });
 
-describe('platforms flow (4-5 stars)', () => {
+describe('owner opt-in: 4★ → public review (publicReviewMinRating = 4)', () => {
   it('a 4★ guest gets the public ask in MEASURED copy, not the 5★ celebration', async () => {
     const user = userEvent.setup();
-    render(<RestaurantReviewApp />);
+    render(<RestaurantReviewApp venue={fourStarPublicVenue} />);
     await rateAndContinue(user, 4);
 
     expect(isActive('screenPlatforms')).toBe(true);
@@ -261,7 +265,7 @@ describe('platforms flow (4-5 stars)', () => {
 
   it('a 4★ guest who declines is still thanked (rating not lost) and not re-offered share', async () => {
     const user = userEvent.setup();
-    render(<RestaurantReviewApp />);
+    render(<RestaurantReviewApp venue={fourStarPublicVenue} />);
     await rateAndContinue(user, 4);
 
     await user.click(screen.getByRole('button', { name: 'Maybe next time' }));
@@ -270,7 +274,9 @@ describe('platforms flow (4-5 stars)', () => {
     // no second "Share publicly" loop.
     expect(screen.queryByRole('button', { name: 'Share publicly' })).not.toBeInTheDocument();
   });
+});
 
+describe('platforms flow (5 stars)', () => {
   it('skip ("Maybe next time") shows the honest rated copy, not a posted claim', async () => {
     const user = userEvent.setup();
     render(<RestaurantReviewApp />);

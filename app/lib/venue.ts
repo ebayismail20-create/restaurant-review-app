@@ -38,6 +38,11 @@ export interface VenueContext {
   // The review platforms this venue chose to show, in display order. Empty is
   // valid (a venue that only collects private feedback).
   platforms: Platform[];
+  // Lowest star rating routed to the PUBLIC review screen. 5 (default) = only
+  // 5★ guests are invited publicly (3-4★ → private). An owner can set 4 in the
+  // dashboard to also send satisfied 4★ guests public. 1-3★ always stay
+  // private regardless, so the public option is never gated from unhappy guests.
+  publicReviewMinRating: number;
 }
 
 /** Shape returned by the get_venue DB function (one row when token matches). */
@@ -48,6 +53,7 @@ export interface VenueRow {
   logo_url: string | null;
   brand_color: string | null;
   server_name: string | null;
+  public_review_min_rating: number | null;
   platforms: Platform[]; // jsonb array from the function
 }
 
@@ -72,6 +78,8 @@ export function venueFromRow(
     brandColor: row.brand_color,
     tableToken: token,
     platforms: Array.isArray(row.platforms) ? row.platforms : [],
+    // Default to 5 (original behaviour) if the column is somehow absent.
+    publicReviewMinRating: row.public_review_min_rating ?? 5,
   };
 }
 
@@ -119,6 +127,8 @@ export const DEMO_VENUE: VenueContext = {
     { kind: 'google', label: 'Google', url: 'https://search.google.com/local/writereview?placeid=PLACEHOLDER' },
     { kind: 'tripadvisor', label: 'Tripadvisor', url: 'https://www.tripadvisor.com/UserReviewEdit-PLACEHOLDER' },
   ],
+  // Original behaviour: only 5★ are invited to a public review.
+  publicReviewMinRating: 5,
 };
 
 

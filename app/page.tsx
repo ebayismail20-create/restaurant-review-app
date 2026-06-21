@@ -86,12 +86,14 @@ const DEFAULT_THEME = 'theme-good';
  * for the old bucket (see `setRating`). Adjusting within a bucket keeps them.
  */
 type RatingBucket = 'sorry' | 'improve' | 'platforms';
-// Satisfied guests (4-5★) are invited to leave a public review; a 3★ gives
-// private "where could we be better" feedback; 1-2★ reach the urgent private
-// flow. The public option stays reachable for everyone (1-3★ via the
-// "Share publicly" link on their success screen), so we never gate it.
-const bucketOf = (r: Rating): RatingBucket =>
-  r >= 4 ? 'platforms' : r === 3 ? 'improve' : 'sorry';
+// Routing depends on the venue's owner-set threshold `minPublic` (5 by default,
+// or 4 if the owner opts in via the dashboard): ratings >= minPublic are invited
+// to a public review; a 3★ gives private "where could we be better" feedback;
+// 1-2★ reach the urgent private flow. The public option stays reachable for
+// everyone (1-3★ via the "Share publicly" success-screen link), so we never gate
+// it — the threshold only changes who is asked publicly *first*.
+const bucketOf = (r: Rating, minPublic: number): RatingBucket =>
+  r >= minPublic ? 'platforms' : r >= 3 ? 'improve' : 'sorry';
 
 // Keep comments short enough to fit a push notification and stay out of spam territory.
 const MAX_COMMENT = 600;
@@ -394,16 +396,17 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   /** Continue from the rating screen — routes by rating bucket. */
   const continueFromRating = useCallback(() => {
     if (!isRating(currentRating)) return;
-    setPlatformsAfterSubmit(false); // a 4-5★ guest lands here as their primary step
-    goTo(bucketOf(currentRating));
-  }, [currentRating, goTo]);
+    setPlatformsAfterSubmit(false); // a public-bound guest lands here as their primary step
+    goTo(bucketOf(currentRating, venue.publicReviewMinRating));
+  }, [currentRating, goTo, venue.publicReviewMinRating]);
 
   const setRating = useCallback((value: Rating) => {
     // Changing the rating ACROSS an outcome boundary (sorry ↔ improve ↔
     // platforms) invalidates any reason tags/comment drafted for the old
     // bucket — the chips shown differ — so clear them. Adjusting WITHIN a
     // bucket (1↔2, 3↔4) keeps the draft, since the same chips apply.
-    if (currentRating !== null && bucketOf(currentRating) !== bucketOf(value)) {
+    const minPublic = venue.publicReviewMinRating;
+    if (currentRating !== null && bucketOf(currentRating, minPublic) !== bucketOf(value, minPublic)) {
       setSelectedTags(new Set());
       setCommentImprove('');
       setCommentSorry('');
@@ -416,7 +419,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(10);
     }
-  }, [currentRating]);
+  }, [currentRating, venue.publicReviewMinRating]);
 
   /**
    * Roving-tabindex stop for the star radiogroup. The stop lives on the
