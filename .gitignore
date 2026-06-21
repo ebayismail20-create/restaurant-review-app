@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local agent tooling
 /.claude/
+
+# Design export reference (kept locally, not in the repo)
+Loop Manager Dashboard*.html
