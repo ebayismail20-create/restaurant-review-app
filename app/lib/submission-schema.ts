@@ -26,5 +26,3 @@ export const reviewRequestSchema = z.object({
   language: z.enum(['en', 'fi', 'sv']),
   session: z.string().uuid(),
 });
-
-export type ReviewRequestInput = z.infer<typeof reviewRequestSchema>;
