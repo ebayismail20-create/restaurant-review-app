@@ -191,17 +191,23 @@ body {
 /* Logo sits in a soft white "plate" with a gold hairline, so logos of any
    shape / background read as deliberate against the cream surface. */
 .venue-logo {
-  max-height: clamp(40px, 12cqi, 52px);
-  max-width: min(70%, 220px);
+  max-height: clamp(58px, 17cqi, 78px);
+  max-width: min(78%, 260px);
   width: auto;
   object-fit: contain;
-  padding: 12px 18px;
+  padding: 14px 22px;
   background: #fff;
   border: 1px solid rgba(201, 169, 97, 0.35);
-  border-radius: 18px;
-  box-shadow: 0 14px 30px -16px rgba(42, 20, 24, 0.32), 0 2px 6px -3px rgba(42, 20, 24, 0.14);
-  margin-bottom: 16px;
+  border-radius: 20px;
+  box-shadow: 0 18px 38px -18px rgba(42, 20, 24, 0.34), 0 2px 6px -3px rgba(42, 20, 24, 0.14);
+  margin-bottom: 14px;
 }
+
+/* When the owner uploaded a logo it IS the brand mark, so let it lead and drop
+   the duplicate text name (most restaurant logos are wordmarks). The monogram
+   path below keeps the name — a single brand-color letter isn't enough alone. */
+.venue-brand:has(.venue-logo) .venue-brand-name { display: none; }
+.venue-brand:has(.venue-logo) .venue-logo { margin-bottom: 12px; }
 
 /* Monogram crest: brand-color tile ringed by a gold hairline (the signature
    flourish), floating on a soft shadow. */
