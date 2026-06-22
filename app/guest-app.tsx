@@ -1194,7 +1194,12 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                 1-3★ guest sharing publicly too) the tone stays measured — no
                 step label, no presumption they were delighted. */}
             {!platformsMeasured ? (
-              <div className="step-label">{dict.lastStep}</div>
+              <>
+                <div className="step-label">{dict.lastStep}</div>
+                {isRating(currentRating) ? (
+                  <RatingRecap rating={currentRating} caption={format(dict.youGaveStars, { n: currentRating })} />
+                ) : null}
+              </>
             ) : null}
             <h2
               ref={isActive('platforms') ? headingRef : null}
@@ -1248,7 +1253,12 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
 
             {/* Calm nudge to beat the blank-Google-box that kills posts on the
                 platform's side, where our funnel can't follow. */}
-            <p className="platforms-starter">{dict.reviewStarterHint}</p>
+            <div className="platforms-starter">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>{dict.reviewStarterHint}</span>
+            </div>
 
             <button type="button" className="skip" onClick={finishFromPlatforms}>
               {dict.skipReview}

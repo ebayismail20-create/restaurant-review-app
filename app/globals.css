@@ -392,7 +392,8 @@ textarea.comment:focus { outline: none; border-color: var(--accent); }
 .platforms-sub { font-size: clamp(13px, 3.4cqi, 14px); color: var(--text-soft); margin-bottom: clamp(18px, 6.7cqi, 28px); line-height: 1.55; }
 /* Quiet reassurance under the cards (above the skip) — lowers the perceived
    effort of writing a public review without any hype. Understated on purpose. */
-.platforms-starter { font-size: clamp(12px, 3.2cqi, 13px); color: var(--text-soft); opacity: 0.78; line-height: 1.5; margin: 2px auto 14px; max-width: 300px; text-align: center; letter-spacing: -0.1px; }
+.platforms-starter { display: flex; align-items: center; justify-content: center; gap: 9px; margin: 20px auto 0; padding: 12px 16px; max-width: 340px; background: rgba(201, 169, 97, 0.12); border-radius: 16px; font-size: clamp(12px, 3.2cqi, 12.5px); color: var(--text-soft); line-height: 1.45; text-align: center; }
+.platforms-starter svg { flex-shrink: 0; color: var(--button); }
 
 /* Platform cards — the conversion moment of the whole product, designed
    like an invitation rather than a list row: brand-tinted icon well, a
@@ -449,15 +450,14 @@ textarea.comment:focus { outline: none; border-color: var(--accent); }
 }
 .platform-card:active { transform: scale(0.98); }
 /* Primary platform — given weight so the happy guest has one obvious place to
-   go: persistent accent bar, gold ring, and a pre-filled CTA that reads as
+   go: a soft gold ring (not a floating bar) and a pre-filled CTA that reads as
    THE button rather than an equal option among a menu. */
 .platform-card-primary {
-  border-color: rgba(201,169,97,0.45);
+  border-color: rgba(201,169,97,0.5);
   box-shadow:
     0 18px 36px -16px rgba(42,20,24,0.34),
     inset 0 0 0 1px rgba(201,169,97,0.30);
 }
-.platform-card-primary::before { opacity: 1; }
 .platform-card-primary .platform-cta {
   background: var(--button);
   color: var(--button-text);
