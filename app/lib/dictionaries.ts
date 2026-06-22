@@ -26,6 +26,7 @@ export interface Dict {
   // Rating
   ratingTitle: string;
   ratingHint: string; // quiet "tap a star" invitation, unrated state only
+  effortCue: string; // effort-setting pill under the stars ("20 seconds · 2 steps")
   continue: string;
   continueDisabledLabel: string; // aria-label when Continue is disabled
   rate_1: string;
@@ -125,6 +126,7 @@ const en: Dict = {
 
   ratingTitle: 'How was your\nvisit?',
   ratingHint: 'Tap a star to rate',
+  effortCue: '20 seconds · 2 quick steps',
   continue: 'Continue',
   continueDisabledLabel: 'Select a rating to continue',
   rate_1: 'Disappointing',
@@ -225,6 +227,7 @@ const fi: Dict = {
 
   ratingTitle: 'Millainen oli\nvierailusi?',
   ratingHint: 'Napauta tähteä',
+  effortCue: '20 sekuntia · 2 nopeaa vaihetta',
   continue: 'Jatka',
   continueDisabledLabel: 'Valitse arvosana jatkaaksesi',
   rate_1: 'Pettymys',
@@ -317,6 +320,7 @@ const sv: Dict = {
 
   ratingTitle: 'Hur var ditt\nbesök?',
   ratingHint: 'Tryck på en stjärna',
+  effortCue: '20 sekunder · 2 snabba steg',
   continue: 'Fortsätt',
   continueDisabledLabel: 'Välj ett betyg för att fortsätta',
   rate_1: 'Besvikande',

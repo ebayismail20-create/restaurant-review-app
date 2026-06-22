@@ -903,7 +903,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               {ratingWord}
             </div>
 
-            <div className="stars" role="radiogroup" aria-label={dict.ratingGroupLabel}>
+            <div className={`stars ${isRating(currentRating) ? '' : 'invite'}`} role="radiogroup" aria-label={dict.ratingGroupLabel}>
               {[1, 2, 3, 4, 5].map((val) => {
                 const n = val as Rating;
                 const active = isRating(currentRating) && currentRating >= n;
@@ -934,6 +934,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
             {/* Invitation shown only before a rating is picked (CSS hides it on
                 .rated). aria-hidden: the radiogroup already announces itself. */}
             <p className="rating-hint" aria-hidden="true">{dict.ratingHint}</p>
+            <div className="rating-cue" aria-hidden="true"><span className="dot" />{dict.effortCue}</div>
 
             <div className="rating-actions">
               <button
