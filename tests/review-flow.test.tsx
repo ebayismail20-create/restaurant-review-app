@@ -292,19 +292,21 @@ describe('platforms flow (5 stars)', () => {
     expect(screen.queryByText(/Thank you for the rating/)).not.toBeInTheDocument();
   });
 
-  it('platform card opens the window synchronously and falls back on PLACEHOLDER urls', async () => {
+  it('platform card is a real outbound link and falls back on PLACEHOLDER urls', async () => {
     const user = userEvent.setup();
-    const open = vi.spyOn(window, 'open').mockReturnValue(null);
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(<RestaurantReviewApp />);
     await rateAndContinue(user, 5);
 
-    await user.click(screen.getByRole('button', { name: /Google/ }));
-    expect(open).toHaveBeenCalledTimes(1);
-    const [url, target, features] = open.mock.calls[0];
-    expect(String(url)).not.toContain('PLACEHOLDER'); // demo venue is unconfigured → fallback
-    expect(target).toBe('_blank');
-    expect(features).toContain('noopener');
+    // A real <a target="_blank"> — the browser navigates natively, so the review
+    // page opens even where a JS window.open() is blocked (in-app / QR webviews).
+    const link = screen.getByRole('link', { name: /Google/ });
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link.getAttribute('rel') ?? '').toContain('noopener');
+    const href = link.getAttribute('href') ?? '';
+    expect(href).toMatch(/^https?:\/\//);
+    expect(href).not.toContain('PLACEHOLDER'); // demo venue unconfigured → fallback URL
+    await user.click(link);
     expect(warn).toHaveBeenCalled(); // misconfiguration noted for devs
   });
 });
@@ -328,7 +330,7 @@ describe('public review available to every guest (no review gating)', () => {
     const platforms = within(getScreen('screenPlatforms'));
     expect(platforms.getByText('Share your experience')).toBeInTheDocument();
     expect(platforms.queryByText(/made our day/)).not.toBeInTheDocument();
-    expect(platforms.getByRole('button', { name: /Google/ })).toBeInTheDocument();
+    expect(platforms.getByRole('link', { name: /Google/ })).toBeInTheDocument();
   });
 
   it('offers it on the 3-4★ success screen too', async () => {

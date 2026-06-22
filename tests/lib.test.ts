@@ -114,6 +114,7 @@ describe('venueFromRow', () => {
     server_name: 'Eero',
     public_review_min_rating: 5,
     show_name_with_logo: false,
+    logo_shape: 'plate',
     platforms: [
       { kind: 'google', label: 'Google', url: 'https://g.example/review' },
       { kind: 'yelp', label: 'Yelp', url: 'https://yelp.example/review' },

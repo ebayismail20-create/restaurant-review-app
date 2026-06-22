@@ -683,24 +683,23 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
     goTo('platforms');
   }, [goTo]);
 
-  const openPlatform = useCallback(
+  // The platform card is a real <a href target="_blank"> (see the render), so the
+  // browser does the navigating natively — that opens the review page reliably
+  // even inside in-app/QR webviews and under strict popup blockers, where a
+  // JS window.open() is silently dropped (the old "nothing happens" bug). This
+  // handler just records the choice and advances the app; it must NOT
+  // preventDefault, so the link still opens.
+  const recordPlatformTap = useCallback(
     (platform: Platform) => {
-      const { url, placeholder } = resolvePlatformUrl(platform);
-      // Unconfigured platform: degrade to the platform home page instead of a
-      // 404. Note it for devs only (a console.warn, not error, so it doesn't
-      // count as a dev-tools "issue" or spam real guests' consoles in prod).
+      const { placeholder } = resolvePlatformUrl(platform);
+      // Unconfigured platform: the href degrades to the platform home page. Note
+      // it for devs only (warn, not error, so it doesn't spam guests' consoles).
       if (placeholder && process.env.NODE_ENV !== 'production') {
         console.warn(
           `[venue-config] ${platform.kind} link is not configured for tenant "${venue.tenantId}" — falling back to the platform home page.`,
         );
       }
-      // window.open MUST run synchronously inside the click's transient user
-      // activation — an `await` before it (even a fast one) lets Safari and
-      // strict popup blockers kill the most valuable navigation in the app.
-      // `noopener,noreferrer` prevents the opened page from reaching back
-      // into this window.
-      window.open(url, '_blank', 'noopener,noreferrer');
-      // Analytics ping is fire-and-forget AFTER the open.
+      // Analytics ping is fire-and-forget; never blocks the outbound review.
       void notifyManager(
         buildRequest('posted', { message: `Chose platform: ${platform.kind}` }),
       ).catch(() => { /* never block the review for analytics */ });
@@ -1223,15 +1222,17 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                 Google/Tripadvisor get brand marks; anything else gets a clean
                 generic icon. */}
             {venue.platforms.map((platform, index) => (
-              <button
-                type="button"
+              <a
                 key={`${platform.kind}-${platform.url}`}
+                href={resolvePlatformUrl(platform).url}
+                target="_blank"
+                rel="noopener noreferrer"
                 // The first (owner-ordered) platform is the primary CTA — given
                 // visual weight so the happy guest has one obvious place to go
                 // instead of a menu to choose from.
                 className={`platform-card ${index === 0 ? 'platform-card-primary' : ''}`}
                 data-platform={platform.kind}
-                onClick={() => openPlatform(platform)}
+                onClick={() => recordPlatformTap(platform)}
               >
                 <div className="platform-icon" aria-hidden="true">
                   <PlatformIcon kind={platform.kind} />
@@ -1253,7 +1254,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </span>
-              </button>
+              </a>
             ))}
 
             {/* Calm nudge to beat the blank-Google-box that kills posts on the
