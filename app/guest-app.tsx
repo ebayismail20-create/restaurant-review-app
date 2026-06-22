@@ -931,9 +931,8 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               })}
             </div>
 
-            {/* Invitation shown only before a rating is picked (CSS hides it on
-                .rated). aria-hidden: the radiogroup already announces itself. */}
-            <p className="rating-hint" aria-hidden="true">{dict.ratingHint}</p>
+            {/* Effort cue under the stars — the star sweep already signals the
+                tap, so no separate "tap a star" line. Hidden on .rated. */}
             <div className="rating-cue" aria-hidden="true"><span className="dot" />{dict.effortCue}</div>
 
             <div className="rating-actions">
