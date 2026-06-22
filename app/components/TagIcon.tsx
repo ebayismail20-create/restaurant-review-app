@@ -68,11 +68,12 @@ export function TagIcon({ name }: Props) {
         </svg>
       );
     case 'ambiance':
+      // Candle — a warmer "atmosphere" cue than a utility lightbulb.
       return (
         <svg {...COMMON} aria-hidden="true">
-          <path d="M9 18h6" />
-          <path d="M10 22h4" />
-          <path d="M12 2a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2z" />
+          <path d="M12 2.5c1.6 2 2.4 3.2 2.4 4.4a2.4 2.4 0 0 1-4.8 0c0-1.2.8-2.4 2.4-4.4z" />
+          <rect x="8.5" y="9.5" width="7" height="11.5" rx="1.6" />
+          <path d="M8.5 13.5h7" />
         </svg>
       );
     case 'value':
