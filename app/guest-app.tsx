@@ -124,25 +124,6 @@ const NEGATIVE_TAGS: readonly TagDef[] = [
   { key: 'other_bad', icon: 'other', labelKey: 'tag_other_bad' },
 ];
 
-// Compact rating recap shown atop step 2 (the reasons screen): the guest's mood
-// face + the stars they actually gave, driven live by their rating. Read-only —
-// it reinforces context already announced on step 1, so the cluster is
-// aria-hidden. Reuses the same face map + gold-star glow as the hero screen.
-function RatingRecap({ rating }: { rating: Rating | null }) {
-  const face = (rating != null && FACE_BY_RATING[rating]) || NEUTRAL_FACE;
-  return (
-    <div className="rating-recap" aria-hidden="true">
-      <span className="recap-face">
-        <svg viewBox="0 0 200 200">
-          <circle cx="70" cy={face.eyeCy} r={face.eyeR} fill="var(--text)" />
-          <circle cx="130" cy={face.eyeCy} r={face.eyeR} fill="var(--text)" />
-          <path d={face.mouth} stroke="var(--text)" strokeWidth="9" strokeLinecap="round" fill="none" />
-        </svg>
-      </span>
-    </div>
-  );
-}
-
 // Platform icons. Google and Tripadvisor get their brand marks; every other
 // owner-added platform (Yelp, OpenTable, their website, anything) gets a clean
 // generic globe so the card still looks intentional.
@@ -969,7 +950,6 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
           inert={isScreenInert('improve')}
         >
           <div className="reasons-wrap">
-            <RatingRecap rating={currentRating} />
             <div className="reasons-header">
               <div className="step-label">{dict.step2of2}</div>
               <h2
