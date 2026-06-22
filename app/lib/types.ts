@@ -32,11 +32,11 @@ export type SuccessKind = 'posted' | 'private' | 'alerted' | 'rated';
 export type SubmissionKind = SuccessKind | 'anon-message';
 
 export type TagKey =
-  | 'food' | 'wait' | 'service' | 'clean' | 'ambiance' | 'value'
+  | 'food' | 'wait' | 'service' | 'clean' | 'ambiance' | 'value' | 'other'
   | 'food_bad' | 'service_bad' | 'wait_bad' | 'clean_bad' | 'price_bad' | 'other_bad';
 
 export const TAG_KEYS: readonly TagKey[] = [
-  'food', 'wait', 'service', 'clean', 'ambiance', 'value',
+  'food', 'wait', 'service', 'clean', 'ambiance', 'value', 'other',
   'food_bad', 'service_bad', 'wait_bad', 'clean_bad', 'price_bad', 'other_bad',
 ] as const;
 

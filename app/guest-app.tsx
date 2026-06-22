@@ -111,7 +111,7 @@ const POSITIVE_TAGS: readonly TagDef[] = [
   { key: 'wait', icon: 'wait', labelKey: 'tag_wait' },
   { key: 'service', icon: 'service', labelKey: 'tag_service' },
   { key: 'clean', icon: 'clean', labelKey: 'tag_clean' },
-  { key: 'ambiance', icon: 'ambiance', labelKey: 'tag_ambiance' },
+  { key: 'other', icon: 'other', labelKey: 'tag_other' },
   { key: 'value', icon: 'value', labelKey: 'tag_value' },
 ];
 
@@ -123,6 +123,27 @@ const NEGATIVE_TAGS: readonly TagDef[] = [
   { key: 'price_bad', icon: 'price', labelKey: 'tag_price_bad' },
   { key: 'other_bad', icon: 'other', labelKey: 'tag_other_bad' },
 ];
+
+const STAR_PATH =
+  'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+
+// Step-2 rating recap: the stars the guest gave + a caption. Decorative (the
+// rating was announced on step 1), so the star row is aria-hidden; the caption
+// stays readable for context.
+function RatingRecap({ rating, caption }: { rating: Rating | null; caption: string }) {
+  return (
+    <div className="rating-recap">
+      <span className="recap-stars" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <svg key={n} className={`recap-star ${rating != null && rating >= n ? 'on' : ''}`} viewBox="0 0 24 24">
+            <path d={STAR_PATH} />
+          </svg>
+        ))}
+      </span>
+      <span className="recap-cap">{caption}</span>
+    </div>
+  );
+}
 
 // Platform icons. Google and Tripadvisor get their brand marks; every other
 // owner-added platform (Yelp, OpenTable, their website, anything) gets a clean
@@ -950,6 +971,9 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
           inert={isScreenInert('improve')}
         >
           <div className="reasons-wrap">
+            {isRating(currentRating) ? (
+              <RatingRecap rating={currentRating} caption={format(dict.youGaveStars, { n: currentRating })} />
+            ) : null}
             <div className="reasons-header">
               <div className="step-label">{dict.step2of2}</div>
               <h2

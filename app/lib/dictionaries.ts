@@ -52,6 +52,8 @@ export interface Dict {
   tag_clean: string;
   tag_ambiance: string;
   tag_value: string;
+  tag_other: string;
+  youGaveStars: string;
 
   // Negative-flow tags
   tag_food_bad: string;
@@ -147,6 +149,8 @@ const en: Dict = {
   tag_clean: 'Cleanliness',
   tag_ambiance: 'Ambiance',
   tag_value: 'Value',
+  tag_other: 'Other',
+  youGaveStars: 'You gave us {n} stars',
 
   tag_food_bad: 'Food quality',
   tag_service_bad: 'Poor service',
@@ -245,6 +249,8 @@ const fi: Dict = {
   tag_clean: 'Siisteys',
   tag_ambiance: 'Tunnelma',
   tag_value: 'Hinta-laatu',
+  tag_other: 'Muu',
+  youGaveStars: 'Annoit meille {n} tähteä',
 
   tag_food_bad: 'Ruoan laatu',
   tag_service_bad: 'Huono palvelu',
@@ -335,6 +341,8 @@ const sv: Dict = {
   tag_clean: 'Renlighet',
   tag_ambiance: 'Atmosfär',
   tag_value: 'Värde',
+  tag_other: 'Annat',
+  youGaveStars: 'Du gav oss {n} stjärnor',
 
   tag_food_bad: 'Matens kvalitet',
   tag_service_bad: 'Dålig service',
