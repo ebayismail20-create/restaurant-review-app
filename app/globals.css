@@ -380,7 +380,6 @@ textarea.comment:focus { outline: none; border-color: var(--accent); }
 
 /* ============================== PLATFORMS SCREEN ============================== */
 .platforms-content { flex: 1; display: flex; flex-direction: column; align-items: stretch; justify-content: center; text-align: center; padding-top: 8px; padding-bottom: 8px; }
-.platforms-emoji { font-size: 48px; margin-bottom: 8px; }
 .platforms-title { font-family: var(--font-serif); font-size: clamp(24px, 7.2cqi, 30px); font-weight: 500; line-height: 1.1; color: var(--text); margin-bottom: 10px; letter-spacing: -1px; }
 .platforms-sub { font-size: clamp(13px, 3.4cqi, 14px); color: var(--text-soft); margin-bottom: clamp(18px, 6.7cqi, 28px); line-height: 1.55; }
 /* Quiet reassurance under the cards (above the skip) — lowers the perceived
@@ -594,7 +593,6 @@ textarea.comment.tall { min-height: clamp(130px, 24dvh, 160px); }
   .reasons-header { margin-bottom: 10px; }
   .tags { margin-bottom: 12px; }
   textarea.comment { min-height: 110px; }
-  .platforms-emoji { font-size: 36px; margin-bottom: 4px; }
   .platforms-sub { margin-bottom: 16px; }
   .platform-card { margin-bottom: 10px; }
 }

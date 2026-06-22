@@ -1166,14 +1166,11 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
           inert={isScreenInert('platforms')}
         >
           <div className="platforms-content">
-            {/* Celebratory chrome only on the 5★ happy path. For a 4★ (or a
+            {/* "Last step" label only on the 5★ happy path. For a 4★ (or a
                 1-3★ guest sharing publicly too) the tone stays measured — no
-                "Last step", no 🎉, no presumption they were delighted. */}
+                step label, no presumption they were delighted. */}
             {!platformsMeasured ? (
-              <>
-                <div className="step-label">{dict.lastStep}</div>
-                <div className="platforms-emoji" aria-hidden="true">🎉</div>
-              </>
+              <div className="step-label">{dict.lastStep}</div>
             ) : null}
             <h2
               ref={isActive('platforms') ? headingRef : null}
