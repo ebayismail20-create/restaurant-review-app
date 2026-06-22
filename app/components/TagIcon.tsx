@@ -30,13 +30,13 @@ const COMMON = {
 export function TagIcon({ name }: Props) {
   switch (name) {
     case 'food':
+      // Fork & knife — reads as "food" far better than the old coffee cup.
       return (
         <svg {...COMMON} aria-hidden="true">
-          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-          <line x1="6" y1="1" x2="6" y2="4" />
-          <line x1="10" y1="1" x2="10" y2="4" />
-          <line x1="14" y1="1" x2="14" y2="4" />
+          <path d="M4 3v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3" />
+          <path d="M6 12v9" />
+          <path d="M17 3a3 3 0 0 0-3 3v6h3" />
+          <path d="M17 3v18" />
         </svg>
       );
     case 'wait':
@@ -47,17 +47,24 @@ export function TagIcon({ name }: Props) {
         </svg>
       );
     case 'service':
+      // Concierge bell — "service" instead of a generic person.
       return (
         <svg {...COMMON} aria-hidden="true">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
+          <path d="M4 18h16" />
+          <path d="M5 18a7 7 0 0 1 14 0" />
+          <path d="M12 6v5" />
+          <path d="M10 6h4" />
         </svg>
       );
     case 'clean':
+      // Spray bottle — a checkmark for "Not clean" was misleading.
       return (
         <svg {...COMMON} aria-hidden="true">
-          <polyline points="9 11 12 14 22 4" />
-          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          <path d="M9 3h4v3H9z" />
+          <path d="M9 6h4l1 4H8z" />
+          <path d="M8 10h6v9a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z" />
+          <path d="M13 4h3l2 2" />
+          <path d="M18 6v2" />
         </svg>
       );
     case 'ambiance':
@@ -77,11 +84,12 @@ export function TagIcon({ name }: Props) {
         </svg>
       );
     case 'other':
+      // Ellipsis — neutral "something else", not an alert.
       return (
         <svg {...COMMON} aria-hidden="true">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
+          <circle cx="5" cy="12" r="1" />
+          <circle cx="12" cy="12" r="1" />
+          <circle cx="19" cy="12" r="1" />
         </svg>
       );
   }
