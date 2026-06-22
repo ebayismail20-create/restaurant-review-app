@@ -201,6 +201,9 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
   const [currentScreen, setCurrentScreen] = useState<Screen>('rating');
   const [themeClass, setThemeClass] = useState<string>(DEFAULT_THEME);
   const [currentRating, setCurrentRating] = useState<Rating | null>(null);
+  // Mouse hover preview on the rating stars (desktop): fills up to the cursor
+  // without committing. Null = not hovering; falls back to currentRating.
+  const [hoverRating, setHoverRating] = useState<Rating | null>(null);
   const [currentLang, setCurrentLang] = useState<Lang>(DEFAULT_LANG);
   const [selectedTags, setSelectedTags] = useState<ReadonlySet<TagKey>>(new Set());
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
@@ -903,10 +906,16 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
               {ratingWord}
             </div>
 
-            <div className={`stars ${isRating(currentRating) ? '' : 'invite'}`} role="radiogroup" aria-label={dict.ratingGroupLabel}>
+            <div
+              className={`stars ${isRating(currentRating) || hoverRating !== null ? '' : 'invite'}`}
+              role="radiogroup"
+              aria-label={dict.ratingGroupLabel}
+              onMouseLeave={() => setHoverRating(null)}
+            >
               {[1, 2, 3, 4, 5].map((val) => {
                 const n = val as Rating;
-                const active = isRating(currentRating) && currentRating >= n;
+                const display = hoverRating ?? currentRating;
+                const active = display !== null && display >= n;
                 const isStop = n === ratingTabStop;
                 return (
                   <button
@@ -917,6 +926,7 @@ export default function RestaurantReviewApp({ venue = DEMO_VENUE }: Props) {
                     }}
                     className={`star ${active ? 'active' : ''}`}
                     onClick={() => setRating(n)}
+                    onMouseEnter={() => setHoverRating(n)}
                     onKeyDown={(e) => onStarKeyDown(e, n)}
                     role="radio"
                     aria-checked={currentRating === n}
