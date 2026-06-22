@@ -124,9 +124,6 @@ const NEGATIVE_TAGS: readonly TagDef[] = [
   { key: 'other_bad', icon: 'other', labelKey: 'tag_other_bad' },
 ];
 
-const STAR_PATH =
-  'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
-
 // Compact rating recap shown atop step 2 (the reasons screen): the guest's mood
 // face + the stars they actually gave, driven live by their rating. Read-only —
 // it reinforces context already announced on step 1, so the cluster is
@@ -141,15 +138,6 @@ function RatingRecap({ rating }: { rating: Rating | null }) {
           <circle cx="130" cy={face.eyeCy} r={face.eyeR} fill="var(--text)" />
           <path d={face.mouth} stroke="var(--text)" strokeWidth="9" strokeLinecap="round" fill="none" />
         </svg>
-      </span>
-      <span className="recap-stars">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <span key={n} className={`recap-star ${rating != null && rating >= n ? 'on' : ''}`}>
-            <svg viewBox="0 0 24 24">
-              <path d={STAR_PATH} />
-            </svg>
-          </span>
-        ))}
       </span>
     </div>
   );
