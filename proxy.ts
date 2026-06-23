@@ -38,7 +38,7 @@ const SENTRY_ORIGIN = (() => {
   }
 })();
 
-function buildCsp(nonce: string, isDev: boolean): string {
+function buildCsp(nonce: string, isDev: boolean, framable: boolean): string {
   const directives: Record<string, readonly string[]> = {
     // Default fallback for any directive we don't explicitly set.
     'default-src': [SCRIPT_SELF],
@@ -94,9 +94,12 @@ function buildCsp(nonce: string, isDev: boolean): string {
       ...(isDev ? ['ws:', 'wss:'] : []),
     ],
 
-    // Hard locks. We never iframe, never get iframed, never use plugins.
+    // Hard locks. We never iframe, never use plugins. We're never iframed
+    // EXCEPT the public /embed/* review badge, which is a read-only, no-action
+    // surface designed to be embedded on a venue's own website — so any origin
+    // may frame it. Every other route stays 'none'.
     'frame-src': [NONE],
-    'frame-ancestors': [NONE],
+    'frame-ancestors': framable ? ['*'] : [NONE],
     'object-src': [NONE],
 
     // Form posts and <base href> can only target our own origin —
@@ -135,7 +138,9 @@ export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const isDev = process.env.NODE_ENV === 'development';
 
-  const csp = buildCsp(nonce, isDev);
+  // The public review badge is meant to be embedded on venues' sites.
+  const framable = request.nextUrl.pathname.startsWith('/embed');
+  const csp = buildCsp(nonce, isDev, framable);
 
   // Forward the nonce to server components via a request header so
   // app/layout.tsx can attach it to <Script> tags. The CSP itself is
